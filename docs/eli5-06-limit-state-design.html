@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Limit state design: factors and combinations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --ink:#1D2925; --muted:#53615B; --line:#C3CBC2; --panel:#E2E8E0;
+  --sand:#E6CD98; --sand2:#C6A668; --soil:#A38058; --soil2:#7F613D;
+  --conc:#C6CCCA; --conc2:#848E8B; --water:#1A6BA4; --push:#B01E2C; --ok:#2A7842; --warn:#9C5D00; --steel:#2B3A55;
+  --pf:.2; --wf:.22; --halo:#EEF1EC;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+    --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+    --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+    --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+  --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+  --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+  --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+main{max-width:1140px;margin:0 auto;padding:0 1.25rem 4rem}
+h1,h2,h3,.big{font-family:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:0}
+h1{font-size:clamp(2.6rem,7.5vw,5.6rem);max-width:15ch}
+h2{font-size:clamp(2rem,4.6vw,3.2rem);max-width:22ch}
+h3{font-size:1.4rem;font-weight:600}
+p{margin:.6rem 0 0;max-width:64ch}
+sub{font-size:.72em;line-height:0} sup{font-size:.72em;line-height:0}
+.lede{font-size:1.25rem;color:var(--muted);max-width:46ch;margin-top:1rem}
+section{padding:4rem 0 0}
+.note{color:var(--muted);font-size:.95rem}
+a{color:var(--ink)}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:'Barlow',system-ui,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:5px;stroke-linejoin:round}
+figure{margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-top:1.1rem;flex-wrap:wrap}
+.top a.back{font-weight:600;text-decoration:none;border:1.5px solid var(--line);border-radius:999px;padding:.3rem .9rem;font-size:.95rem}
+.top a.back:hover{border-color:var(--ink)}
+.kick{color:var(--muted);font-weight:600;font-size:.95rem;margin-top:1.6rem;letter-spacing:.02em}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:.9rem;border:0;background:transparent;color:var(--ink);padding:.3rem .8rem;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* fills & strokes */
+.f-sand{fill:url(#dots)} .f-clay{fill:url(#clay)}
+.f-conc{fill:url(#conc);stroke:var(--conc2);stroke-width:1.5}
+.f-slab{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.f-gravel{fill:url(#gravel)}
+.f-push{fill:var(--push);fill-opacity:var(--pf);stroke:var(--push);stroke-width:2}
+.f-water{fill:var(--water);fill-opacity:var(--wf);stroke:var(--water);stroke-width:2}
+.f-ok{fill:var(--ok);fill-opacity:var(--pf);stroke:var(--ok);stroke-width:2}
+.f-warn{fill:var(--warn);fill-opacity:var(--pf);stroke:var(--warn);stroke-width:2}
+.f-steel{fill:var(--steel)} .f-ink{fill:var(--ink)} .f-pushs{fill:var(--push)} .f-oks{fill:var(--ok)} .f-warns{fill:var(--warn)} .f-waters{fill:var(--water)} .f-none{fill:none}
+.s-push{stroke:var(--push);stroke-width:2.5;fill:none}
+.s-water{stroke:var(--water);stroke-width:2.5;fill:none}
+.s-ok{stroke:var(--ok);stroke-width:2.5;fill:none}
+.s-warn{stroke:var(--warn);stroke-width:2.5;fill:none}
+.s-ink{stroke:var(--ink);stroke-width:1.8;fill:none}
+.s-thick{stroke:var(--ink);stroke-width:4;fill:none}
+.s-beam{stroke:var(--conc2);stroke-width:6;fill:none;stroke-linecap:round}
+.s-muted{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:6 5}
+.s-grid{stroke:var(--line);stroke-width:1;fill:none}
+.s-steel{stroke:var(--steel);stroke-width:3.5;fill:none;stroke-linecap:round}
+.ghost{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-dasharray:6 5}
+/* layout */
+.lab{display:grid;gap:1.6rem 2.4rem;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);margin-top:2rem;align-items:start}
+.lab+.lab{margin-top:3rem}
+.ctl{display:grid;gap:1.2rem;align-content:start}
+.sls{display:grid;gap:1.1rem}
+.sl .slh{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.sl label{font-weight:600;font-size:1.02rem}
+.sl output{font-variant-numeric:tabular-nums;font-weight:600;color:var(--push);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--push);height:2rem;margin:.1rem 0 0;cursor:pointer}
+.cl{font-weight:600;font-size:1.02rem;margin-bottom:.1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem}
+.btn,.chips button{font:inherit;font-size:.92rem;padding:.4rem .85rem;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;cursor:pointer}
+.btn:hover,.chips button:hover{border-color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk{display:flex;gap:.6rem;align-items:center;font-weight:500;cursor:pointer}
+.chk input{width:1.15rem;height:1.15rem;accent-color:var(--push)}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.metrics{display:grid;gap:1rem 1.2rem;grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.m{border-top:4px solid var(--line);padding-top:.5rem}
+.m.ok{border-color:var(--ok)} .m.bad{border-color:var(--push)} .m.warn{border-color:var(--warn)}
+.m .lbl{font-size:.9rem;color:var(--muted);font-weight:500}
+.m .val{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.m .val small{font-size:.95rem;font-weight:500;color:var(--muted);margin-left:.25rem}
+.m .st{font-size:.9rem;font-weight:600}
+.m.ok .st{color:var(--ok)} .m.bad .st{color:var(--push)} .m.warn .st{color:var(--warn)}
+.m .sb{font-size:.85rem;color:var(--muted)}
+.bars{display:grid;gap:.5rem}
+.bar{display:grid;grid-template-columns:8.2rem 1fr 3.2rem;align-items:center;gap:.6rem;font-size:.93rem}
+.bar i{display:block;height:.8rem;background:var(--line);border-radius:2px;position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:2px}
+.bar.push i b{background:var(--push)} .bar.ok i b{background:var(--ok)} .bar.warn i b{background:var(--warn)} .bar.water i b{background:var(--water)}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.bar.on{font-weight:600}
+.said{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;font-weight:600;line-height:1.15;max-width:26ch}
+.hints{margin:.2rem 0 0;padding:0;list-style:none;display:grid;gap:.35rem}
+.hints li{padding-left:1.1rem;position:relative;max-width:70ch}
+.hints li::before{content:"";position:absolute;left:0;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--push)}
+.hints li.good::before{background:var(--ok)}
+.step{border:1.5px solid var(--line);border-radius:10px;padding:.5rem .8rem;transition:background .25s,border-color .25s}
+.step.on{border-color:var(--push);background:var(--panel)}
+/* quiz */
+.q{border-top:1px solid var(--line);padding:1rem 0}
+.q h3{font-size:1.35rem;margin-bottom:.6rem;max-width:34ch}
+.opts{display:flex;flex-wrap:wrap;gap:.5rem}
+.opts .btn{border-radius:10px;text-align:left}
+.opts .btn.right{border-color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}
+.opts .btn.right::before{content:"✓ "}
+.opts .btn.wrong{border-color:var(--push);box-shadow:inset 0 0 0 1.5px var(--push)}
+.opts .btn.wrong::before{content:"✗ "}
+.why{margin:.6rem 0 0}
+.score{font-weight:600;margin-top:.8rem}
+/* lists */
+.rules{margin:1.5rem 0 0;padding:0;list-style:none;display:grid;gap:0}
+.rules li{display:grid;grid-template-columns:2.2rem 1fr;gap:.8rem;padding:.8rem 0;border-top:1px solid var(--line);max-width:70ch}
+.rules li:last-child{border-bottom:1px solid var(--line)}
+.rules li b.n{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;color:var(--push);line-height:1}
+.codes{margin:1.2rem 0 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:0;list-style:none}
+.codes li{border:1.5px solid var(--line);border-radius:999px;padding:.25rem .8rem;font-size:.92rem}
+.tbl{overflow-x:auto;margin-top:1.2rem}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.98rem}
+th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.9rem}
+footer{max-width:1140px;margin:0 auto;padding:2rem 1.25rem 3rem;color:var(--muted);font-size:.92rem;border-top:1px solid var(--line)}
+footer a{font-weight:600}
+@media (max-width:860px){.lab{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" style="fill:var(--sand)"/><circle cx="4" cy="4" r="1.5" style="fill:var(--sand2)"/><circle cx="12" cy="11" r="1.1" style="fill:var(--sand2)"/><circle cx="9" cy="2" r=".8" style="fill:var(--sand2)"/></pattern>
+    <pattern id="clay" width="18" height="10" patternUnits="userSpaceOnUse"><rect width="18" height="10" style="fill:var(--soil)"/><line x1="2" y1="5" x2="10" y2="5" style="stroke:var(--soil2);stroke-width:1.4"/></pattern>
+    <pattern id="conc" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" style="fill:var(--conc)"/><line x1="0" y1="0" x2="0" y2="10" style="stroke:var(--conc2);stroke-width:1.2"/></pattern>
+    <pattern id="gravel" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" style="fill:var(--conc)"/><circle cx="5" cy="5" r="3.6" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/><circle cx="15" cy="13" r="4.2" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/></pattern>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--push)"/></marker>
+    <marker id="ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--water)"/></marker>
+    <marker id="ahk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+    <marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ok)"/></marker>
+  </defs>
+</svg>
+<main>
+<div class="top"><a class="back" href="eli5-index.html">← All topics</a>
+<div class="seg" role="group" aria-label="Colour theme"><button type="button" data-th="auto" aria-pressed="true">Auto</button><button type="button" data-th="light" aria-pressed="false">Light</button><button type="button" data-th="dark" aria-pressed="false">Dark</button></div></div>
+<div class="kick">06 · RCC design</div>
+<h1>Limit state design: factors and combinations</h1>
+<p class="lede">We do not design for the loads we expect. We design for loads pushed up by factors, against strengths pushed down. The gap is the safety.</p>
+<section><h2>Load combinations: which one governs?</h2><p>A member sees many load combinations. Pick lateral load type, set the loads, and see which combination is the worst.</p><div id="h0"></div></section>
+<section><h2>Why the factors exist: scatter</h2><p>Real loads and real strengths both vary. The factors keep the overlap of the two bell curves very small. Change the scatter and see the chance of failure.</p><div id="h1"></div></section>
+<section><h2>Design strengths: what the code takes away</h2><p>The code cuts material strength before you use it. This is the other half of safety.</p><div id="h2"></div></section>
+<section><h2>Check yourself</h2><div id="hq"></div></section>
+<section><h2>Keep in mind</h2><ul class="rules"><li><b class="n">1</b><span>Check every combination. Do not trust one to cover all.</span></li><li><b class="n">2</b><span>The 0.9 DL combination matters for uplift and overturning.</span></li><li><b class="n">3</b><span>Serviceability checks (deflection, cracks, drift) use unfactored loads.</span></li><li><b class="n">4</b><span>A higher factor does not fix a wrong model. It only adds margin to a good one.</span></li></ul><ul class="codes"><li>IS 456:2000 cl 18, Table 18</li><li>IS 1893 (Part 1):2016 cl 6.3</li><li>IS 16700:2023 cl 5</li><li>IS 875 (Part 5) load combinations</li></ul></section>
+</main>
+<footer>For learning and quick sense-checks. Design from the project design basis, the geotechnical report and the governing codes. <a href="eli5-index.html">All topics</a></footer>
+<script>
+
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const STY={stroke:1,'stroke-width':1,'stroke-dasharray':1,fill:1,'fill-opacity':1};
+function S(tag,a,p){const e=document.createElementNS(NS,tag);let st=a&&a.style?a.style+';':'';for(const k in a){if(k==='style')continue;if(STY[k])st+=k+':'+a[k]+';';else e.setAttribute(k,a[k])}if(st)e.setAttribute('style',st);if(p)p.appendChild(e);return e}
+function T(p,x,y,txt,a){const e=S('text',Object.assign({x:x,y:y,'font-size':22},a||{}),p);e.textContent=txt;return e}
+function clear(e){while(e.firstChild)e.removeChild(e.firstChild)}
+function pts(a){return a.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ')}
+function poly(p,a,at){return S('polygon',Object.assign({points:pts(a)},at||{}),p)}
+function pline(p,a,cls,at){return S('polyline',Object.assign({points:pts(a),class:cls||'s-ink'},at||{}),p)}
+function line(p,x1,y1,x2,y2,cls,at){return S('line',Object.assign({x1:x1,y1:y1,x2:x2,y2:y2,class:cls||'s-ink'},at||{}),p)}
+function rect(p,x,y,w,h,cls,at){return S('rect',Object.assign({x:x,y:y,width:Math.max(0,w),height:Math.max(0,h),class:cls},at||{}),p)}
+function circ(p,cx,cy,r,cls,at){return S('circle',Object.assign({cx:cx,cy:cy,r:r,class:cls},at||{}),p)}
+function path(p,d,cls,at){return S('path',Object.assign({d:d,class:cls||'s-ink'},at||{}),p)}
+function arrow(p,x1,y1,x2,y2,cls,m,at){return S('line',Object.assign({x1:x1,y1:y1,x2:x2,y2:y2,class:cls||'s-push','marker-end':'url(#'+(m||'ah')+')'},at||{}),p)}
+function dimH(p,x1,x2,y,label,o){o=o||{};line(p,x1,y,x2,y,'s-ink');line(p,x1,y-7,x1,y+7,'s-ink');line(p,x2,y-7,x2,y+7,'s-ink');if(label)T(p,(x1+x2)/2,y+(o.dy===undefined?-10:o.dy),label,{'text-anchor':'middle','font-size':o.fs||21})}
+function dimV(p,x,y1,y2,label,o){o=o||{};line(p,x,y1,x,y2,'s-ink');line(p,x-7,y1,x+7,y1,'s-ink');line(p,x-7,y2,x+7,y2,'s-ink');if(label)T(p,x+(o.dx===undefined?-10:o.dx),(y1+y2)/2+7,label,{'text-anchor':o.anchor||'end','font-size':o.fs||21})}
+function pin(p,x,y,s){s=s||16;poly(p,[[x,y],[x-s,y+s*1.4],[x+s,y+s*1.4]],{class:'f-slab',stroke:'var(--ink)','stroke-width':2});line(p,x-s*1.4,y+s*1.4,x+s*1.4,y+s*1.4,'s-ink')}
+function roller(p,x,y,s){s=s||16;poly(p,[[x,y],[x-s,y+s*1.2],[x+s,y+s*1.2]],{class:'f-slab',stroke:'var(--ink)','stroke-width':2});circ(p,x-s*.5,y+s*1.2+5,5,'f-slab',{stroke:'var(--ink)'});circ(p,x+s*.5,y+s*1.2+5,5,'f-slab',{stroke:'var(--ink)'});line(p,x-s*1.4,y+s*1.2+10,x+s*1.4,y+s*1.2+10,'s-ink')}
+function fixedWall(p,x,y1,y2,side){const w=16;rect(p,side<0?x-w:x,y1,w,y2-y1,'f-conc');}
+function fixedBase(p,x1,x2,y){rect(p,x1,y,x2-x1,14,'f-conc')}
+const nice=x=>{const e=Math.pow(10,Math.floor(Math.log10(x))),f=x/e;return (f<1.5?1:f<3?2:f<7?5:10)*e};
+function ticks(a,b,n){const st=nice((b-a)/n),r=[];for(let v=Math.ceil(a/st-1e-9)*st;v<=b+1e-9;v+=st)r.push(+v.toFixed(10));return r}
+const fmtT=v=>Math.abs(v)>=10000?(v/1000)+'k':(+v.toFixed(3))+'';
+function plot(g,o){const x=o.x===undefined?72:o.x,y=o.y===undefined?24:o.y,w=o.w||530,h=o.h||300;
+  const X=v=>x+(v-o.x0)/(o.x1-o.x0)*w,Y=v=>y+h-(v-o.y0)/(o.y1-o.y0)*h;
+  const xs=Array.isArray(o.xt)?o.xt:ticks(o.x0,o.x1,o.xt||5),ys=Array.isArray(o.yt)?o.yt:ticks(o.y0,o.y1,o.yt||5);
+  xs.forEach(v=>{line(g,X(v),y,X(v),y+h,'s-grid');T(g,X(v),y+h+24,fmtT(v),{'font-size':18,'text-anchor':'middle'})});
+  ys.forEach(v=>{line(g,x,Y(v),x+w,Y(v),'s-grid');T(g,x-8,Y(v)+6,fmtT(v),{'font-size':18,'text-anchor':'end'})});
+  line(g,x,y+h,x+w,y+h,'s-ink');line(g,x,y,x,y+h,'s-ink');
+  if(o.xl)T(g,x+w,y+h+50,o.xl,{'font-size':19,'text-anchor':'end'});
+  if(o.yl)T(g,x,y-8,o.yl,{'font-size':19});
+  return {X:X,Y:Y,x:x,y:y,w:w,h:h,o:o}}
+function curve(g,P,fn,a,b,cls,n,at){n=n||120;const q=[];for(let i=0;i<=n;i++){const v=a+(b-a)*i/n;let yv=fn(v);if(!isFinite(yv))continue;{const lo=Math.min(P.o.y0,P.o.y1),hi=Math.max(P.o.y0,P.o.y1),pd=(hi-lo)*.05;yv=clamp(yv,lo-pd,hi+pd)};q.push([P.X(v),P.Y(yv)])}return pline(g,q,cls||'s-push',at)}
+let _id=0;
+function slider(host,o){const id='sl'+(++_id);let w=host.querySelector(':scope > .sls');if(!w){w=document.createElement('div');w.className='sls';host.appendChild(w)}
+  const d=document.createElement('div');d.className='sl';
+  d.innerHTML='<div class="slh"><label for="'+id+'">'+o.label+'</label><output for="'+id+'"></output></div><input type="range" id="'+id+'" min="'+o.min+'" max="'+o.max+'" step="'+o.step+'" value="'+o.value+'">';
+  w.appendChild(d);const i=d.querySelector('input'),out=d.querySelector('output');
+  const u=()=>{out.innerHTML=o.fmt?o.fmt(+i.value):i.value};
+  i.addEventListener('input',()=>{u();if(o.on)o.on(+i.value)});u();
+  i.v=()=>+i.value;i.set=v=>{i.value=v;i.dispatchEvent(new Event('input'))};return i}
+function chips(host,items,on,init,label){const w=document.createElement('div');if(label){const l=document.createElement('div');l.className='cl';l.innerHTML=label;w.appendChild(l)}
+  const c=document.createElement('div');c.className='chips';w.appendChild(c);host.appendChild(w);let cur=init===undefined?items[0][1]:init;
+  const bs=items.map(it=>{const b=document.createElement('button');b.type='button';b.innerHTML=it[0];b.onclick=()=>set(it[1],true);c.appendChild(b);return [b,it[1]]});
+  function set(v,f){cur=v;bs.forEach(x=>x[0].setAttribute('aria-pressed',x[1]===v?'true':'false'));if(f&&on)on(v)}
+  set(cur,false);return {get:()=>cur,set:v=>set(v,true)}}
+function checkbox(host,label,on,init){const l=document.createElement('label');l.className='chk';l.innerHTML='<input type="checkbox"> '+label;const i=l.querySelector('input');i.checked=!!init;i.addEventListener('change',()=>{if(on)on(i.checked)});host.appendChild(l);i.v=()=>i.checked;return i}
+function button(host,label,on,solid){const b=document.createElement('button');b.type='button';b.className='btn'+(solid?' solid':'');b.innerHTML=label;b.onclick=on;host.appendChild(b);return b}
+function tiles(host,arr){host.innerHTML='<div class="metrics">'+arr.map(t=>'<div class="m '+(t.c||'')+'"><div class="lbl">'+t.l+'</div><div class="val">'+t.v+(t.u?'<small>'+t.u+'</small>':'')+'</div>'+(t.st?'<div class="st">'+t.st+'</div>':'')+(t.s?'<div class="sb">'+t.s+'</div>':'')+'</div>').join('')+'</div>'}
+function bars(host,rows){host.innerHTML='<div class="bars">'+rows.map(r=>'<div class="bar '+(r.c||'')+(r.on?' on':'')+'"><span>'+r.l+'</span><i><b style="width:'+clamp(r.v/(r.max||1)*100,1.5,100).toFixed(1)+'%"></b></i><span>'+(r.t===undefined?Math.round(r.v):r.t)+'</span></div>').join('')+'</div>'}
+function Lab(host,o){o=o||{};const d=document.createElement('div');d.className='lab';
+  d.innerHTML='<figure><svg viewBox="0 0 '+(o.w||640)+' '+(o.h||440)+'" role="img" aria-label="'+(o.label||'Interactive diagram')+'"></svg>'+(o.note?'<p class="note">'+o.note+'</p>':'')+'</figure><div class="ctl"><div class="cin"></div><div class="out"></div></div>';
+  host.appendChild(d);const ctl=d.querySelector('.cin');return {svg:d.querySelector('svg'),sl:ctl,out:d.querySelector('.out'),el:d}}
+function animate(from,to,ms,fn,done){if(reduce){fn(to);if(done)done();return}const t0=performance.now();function st(t){const k=Math.min(1,(t-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;fn(from+(to-from)*e);if(k<1)requestAnimationFrame(st);else if(done)done()}requestAnimationFrame(st)}
+function loop(el,fn){let vis=true,t0=performance.now(),on=true;if('IntersectionObserver' in window){new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&on)requestAnimationFrame(f)}).observe(el)}
+  function f(t){if(!on||!vis)return;fn((t-t0)/1000);requestAnimationFrame(f)}
+  if(reduce)fn(0.4);else requestAnimationFrame(f);return {stop:()=>{on=false}}}
+function quiz(host,items){const w=document.createElement('div');const score=document.createElement('p');score.className='score';let sc=0,dn=0;
+  items.forEach(it=>{const q=document.createElement('div');q.className='q';q.innerHTML='<h3>'+it.q+'</h3><div class="opts"></div><p class="why" hidden></p>';const ob=q.querySelector('.opts'),why=q.querySelector('.why');
+    it.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.className='btn';b.innerHTML=t;b.onclick=()=>{if(q.dataset.d)return;q.dataset.d=1;dn++;const ok=j===it.a;if(ok)sc++;b.classList.add(ok?'right':'wrong');if(!ok)ob.children[it.a].classList.add('right');why.hidden=false;why.innerHTML=(ok?'Right. ':'Not quite. ')+it.w;score.textContent=sc+' of '+items.length+' right'+(dn<items.length?' so far':'')};ob.appendChild(b)});
+    w.appendChild(q)});w.appendChild(score);host.appendChild(w)}
+const f0=v=>Math.round(v).toLocaleString('en-IN');
+const f1=v=>(Math.round(v*10)/10).toFixed(1);
+const f2=v=>(Math.round(v*100)/100).toFixed(2);
+const f3=v=>(Math.round(v*1000)/1000).toFixed(3);
+const ok=(c,a,b,x)=>c?a:(x||b);
+/* theme */
+const root=document.documentElement;
+function setTheme(t){if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',t);document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.th===t?'true':'false'));try{localStorage.setItem('es-theme',t)}catch(e){}}
+let _th='auto';try{_th=localStorage.getItem('es-theme')||(localStorage.getItem('rw-theme')||'auto')}catch(e){}
+setTheme(_th);document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>setTheme(b.dataset.th)));
+
+try{(function(H){
+
+const L=Lab(H,{h:440,label:'Factored load combinations as bars',note:'Axial force in a column, kN. Bars run from the case with the lateral load acting one way to the other. Combinations from IS 456 Table 18 (wind) and IS 1893 / IS 16700 (earthquake).'});
+const kd=chips(L.sl,[['Wind','w'],['Earthquake','e']],d,'e','Lateral load');
+const sD=slider(L.sl,{label:'Dead load DL',min:200,max:3000,step:50,value:1200,fmt:v=>v+' kN',on:d});
+const sL=slider(L.sl,{label:'Live load LL',min:0,max:1500,step:50,value:300,fmt:v=>v+' kN',on:d});
+const sE=slider(L.sl,{label:'Lateral effect (±)',min:0,max:1500,step:25,value:500,fmt:v=>v+' kN',on:d});
+const sC=slider(L.sl,{label:'Column capacity',min:500,max:6000,step:100,value:2500,fmt:v=>v+' kN',on:d});
+function d(){const DL=sD.v(),LL=sL.v(),E=sE.v(),Cp=sC.v(),eq=kd.get()==='e',g=L.svg;clear(g);
+ const nm=eq?'EL':'WL';
+ const cb=[['1.5 (DL + LL)',1.5*(DL+LL),1.5*(DL+LL)],['1.2 (DL + LL ± '+nm+')',1.2*(DL+LL)+1.2*E,1.2*(DL+LL)-1.2*E],['1.5 (DL ± '+nm+')',1.5*DL+1.5*E,1.5*DL-1.5*E],['0.9 DL ± 1.5 '+nm,.9*DL+1.5*E,.9*DL-1.5*E]];
+ const mx=Math.max(Cp*1.1,...cb.map(c=>c[1])),mn=Math.min(0,...cb.map(c=>c[2])),x0=60,w=560,X=v=>x0+(v-mn)/(mx-mn)*w;
+ const gov=cb.reduce((a,c,i)=>c[1]>cb[a][1]?i:a,0);
+ line(g,X(0),40,X(0),360,'s-ink');
+ cb.forEach((c,i)=>{const y=60+i*78;T(g,x0,y-10,c[0],{'font-size':21,'font-weight':i===gov?700:500});
+  rect(g,X(Math.min(c[1],c[2])),y,Math.abs(X(c[1])-X(c[2]))+4,34,i===gov?'f-push':'f-water');
+  T(g,X(c[1])+8,y+25,f0(c[1]),{'font-size':20});if(c[2]<0)T(g,X(c[2])-8,y+25,f0(c[2]),{'font-size':20,'text-anchor':'end'})});
+ line(g,X(Cp),36,X(Cp),372,'s-push',{'stroke-dasharray':'8 5','stroke-width':3});T(g,X(Cp)-6,392,'capacity '+f0(Cp),{'font-size':21,'text-anchor':'end','font-weight':600});
+ const u=cb[gov][1]/Cp,tens=Math.min(...cb.map(c=>c[2]));
+ tiles(L.out,[{l:'Governing, compression',v:f0(cb[gov][1]),u:'kN',s:cb[gov][0]},{l:'Utilisation',v:Math.round(u*100),u:'%',c:u<=1?(u>.9?'warn':'ok'):'bad',st:u<=1?'OK':'Overloaded'},{l:'Least force',v:f0(tens),u:'kN',c:tens<0?'bad':'ok',st:tens<0?'Net tension: check uplift and splices':'Always in compression'}])}
+d();
+
+})($("h0"))}catch(e){console.error("section 0",e)}
+try{(function(H){
+
+const L=Lab(H,{h:400,label:'Load and resistance distributions overlapping',note:'Normal distributions. Reliability index β = (mean R − mean S) / √(σR² + σS²). Illustrative: code factors are calibrated on many more cases.'});
+const sr=slider(L.sl,{label:'Mean resistance ÷ mean load',min:1.2,max:3,step:.05,value:1.8,fmt:v=>f2(v)+' ×',on:d});
+const cs=slider(L.sl,{label:'Scatter in load',min:5,max:40,step:1,value:15,fmt:v=>v+'%',on:d});
+const cr=slider(L.sl,{label:'Scatter in resistance',min:5,max:30,step:1,value:12,fmt:v=>v+'%',on:d});
+function erf(x){const s=x<0?-1:1;x=Math.abs(x);const t=1/(1+.3275911*x),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return s*y}
+const Phi=z=>.5*(1+erf(z/Math.SQRT2));
+function d(){const g=L.svg;clear(g);const mS=100,mR=100*sr.v(),sS=mS*cs.v()/100,sR=mR*cr.v()/100;
+ const P=plot(g,{x0:0,x1:400,y0:0,y1:1,xt:4,yt:[0],xl:'load or resistance (relative)',yl:''});
+ const nrm=(m,s)=>x=>Math.exp(-.5*((x-m)/s)**2)/(Math.sqrt(2*Math.PI)*s);
+ const fS=nrm(mS,sS),fR=nrm(mR,sR),pk=Math.max(fS(mS),fR(mR));
+ P.o.y1=pk*1.1;const Y=v=>P.y+P.h-v/(pk*1.1)*P.h;
+ const a=[],b=[],o=[];for(let x=0;x<=400;x+=2){a.push([P.X(x),Y(fS(x))]);b.push([P.X(x),Y(fR(x))]);o.push([P.X(x),Y(Math.min(fS(x),fR(x)))])}
+ poly(g,[[P.X(0),Y(0)]].concat(o).concat([[P.X(400),Y(0)]]),{class:'f-push'});
+ pline(g,a,'s-water',{'stroke-width':3.5});pline(g,b,'s-ok',{'stroke-width':3.5});
+ T(g,P.X(mS),Y(fS(mS))-10,'load',{'text-anchor':'middle','font-size':22,'font-weight':600});T(g,P.X(mR),Y(fR(mR))-10,'resistance',{'text-anchor':'middle','font-size':22,'font-weight':600});
+ const beta=(mR-mS)/Math.sqrt(sR*sR+sS*sS),pf=Phi(-beta);
+ tiles(L.out,[{l:'Reliability index β',v:f2(beta),c:beta>=3.5?'ok':beta>=2.5?'warn':'bad',st:beta>=3.5?'Comfortable':beta>=2.5?'Marginal':'Too risky',s:'buildings aim near 3.5–4'},{l:'Chance of failure',v:pf<1e-7?'< 1 in 10 million':'1 in '+f0(1/pf)},{l:'Overlap',v:'red area'}])}
+d();
+
+})($("h1"))}catch(e){console.error("section 1",e)}
+try{(function(H){
+
+const L=Lab(H,{h:300,label:'Characteristic versus design strength',note:'γm = 1.5 for concrete, 1.15 for steel. The 0.67 factor covers the gap between a test cube and the real member.'});
+const g1=chips(L.sl,[['M25',25],['M30',30],['M40',40],['M50',50]],d,30,'Concrete');
+const g2=chips(L.sl,[['Fe415',415],['Fe500',500],['Fe550',550]],d,500,'Steel');
+function d(){const g=L.svg;clear(g);const fc=g1.get(),fy=g2.get(),rows=[['Concrete fck',fc,.67*fc/1.5,'0.67 / 1.5 = 0.446'],['Steel fy',fy,fy/1.15,'1 / 1.15 = 0.87']];
+ rows.forEach((r,i)=>{const y=40+i*130,sc=470/Math.max(fy,fc*10);const mx=i?fy:fc*10;const k=470/ (i?560:60);
+  T(g,40,y,r[0]+' = '+r[1]+' MPa',{'font-size':22,'font-weight':600});rect(g,40,y+14,r[1]*k,28,'f-water');
+  rect(g,40,y+50,r[2]*k,28,'f-ok');T(g,40+r[2]*k+10,y+72,'design '+f0(r[2])+' MPa  ('+r[3]+')',{'font-size':20})});
+ L.out.innerHTML=''}
+d();
+
+})($("h2"))}catch(e){console.error("section 2",e)}
+quiz($("hq"),[{"q": "Which combination usually governs a column in tension (uplift)?", "o": ["1.5 (DL + LL)", "1.2 (DL + LL \u00b1 EL)", "0.9 DL \u00b1 1.5 EL"], "a": 2, "w": "Less dead load to hold it down, more lateral load pulling it up. This combination reveals net tension."}, {"q": "A design load factor is higher on live load than on dead load because\u2026", "o": ["Live load is more uncertain", "Live load is heavier", "It is a habit"], "a": 0, "w": "Live and lateral loads scatter more. Factors follow the scatter."}, {"q": "The partial safety factor on steel (1.15) is lower than concrete (1.5) because\u2026", "o": ["Steel is stronger", "Steel is made in a factory so its strength varies less", "Steel is cheaper"], "a": 1, "w": "Steel strength is far more consistent than site concrete."}]);
+</script>
+</body></html>
