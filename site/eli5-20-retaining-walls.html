@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Retaining walls and earth pressure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --ink:#1D2925; --muted:#53615B; --line:#C3CBC2; --panel:#E2E8E0;
+  --sand:#E6CD98; --sand2:#C6A668; --soil:#A38058; --soil2:#7F613D;
+  --conc:#C6CCCA; --conc2:#848E8B; --water:#1A6BA4; --push:#B01E2C; --ok:#2A7842; --warn:#9C5D00;
+  --pf:.2; --wf:.22; --halo:#EEF1EC;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+    --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+    --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48;
+    --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+  --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+  --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48;
+  --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+main{max-width:1140px;margin:0 auto;padding:0 1.25rem 5rem}
+h1,h2,h3,.big{font-family:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:0}
+h1{font-size:clamp(2.8rem,8vw,6.2rem);max-width:13ch}
+h2{font-size:clamp(2rem,4.6vw,3.3rem);max-width:22ch}
+h3{font-size:1.5rem;font-weight:600}
+p{margin:.6rem 0 0;max-width:64ch}
+sub{font-size:.72em;line-height:0}
+.lede{font-size:1.25rem;color:var(--muted);max-width:46ch;margin-top:1rem}
+section{padding:4.5rem 0 0}
+.note{color:var(--muted);font-size:.95rem}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:'Barlow',system-ui,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:5px;stroke-linejoin:round}
+.cap{margin-top:.5rem;font-size:1rem;max-width:42ch}
+.cap b{font-weight:600}
+.grid{display:grid;gap:2rem 2.25rem;margin-top:2rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.grid.small{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.grid.five{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+figure{margin:0}
+/* top bar */
+.top{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-top:1.2rem}
+.top a.back{font-weight:600;text-decoration:none;border:1.5px solid var(--line);border-radius:999px;padding:.3rem .9rem;font-size:.95rem;color:var(--ink)}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:.9rem;border:0;background:transparent;color:var(--ink);padding:.3rem .8rem;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* fills */
+.f-sand{fill:url(#dots)}
+.f-clay{fill:url(#clay)}
+.f-conc{fill:url(#conc);stroke:var(--conc2);stroke-width:1.5}
+.f-gravel{fill:url(#gravel)}
+.f-push{fill:var(--push);fill-opacity:var(--pf);stroke:var(--push);stroke-width:2}
+.f-water{fill:var(--water);fill-opacity:var(--wf);stroke:var(--water);stroke-width:2}
+.f-ok{fill:var(--ok);fill-opacity:var(--pf);stroke:var(--ok);stroke-width:2}
+.s-push{stroke:var(--push);stroke-width:2.5;fill:none}
+.s-water{stroke:var(--water);stroke-width:2.5;fill:none}
+.s-ink{stroke:var(--ink);stroke-width:1.6;fill:none}
+.s-muted{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:6 5}
+.s-steel{stroke:var(--push);stroke-width:3.5;fill:none;stroke-linecap:round}
+.ghost{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-dasharray:6 5}
+/* lab layout */
+.lab{display:grid;gap:2rem 2.5rem;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);margin-top:2rem;align-items:start}
+.ctl{display:grid;gap:1.3rem;align-content:start}
+.ctl h4{margin:.4rem 0 -.4rem;font-size:.95rem;font-weight:600;color:var(--muted)}
+.sl .slh{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.sl label{font-weight:600;font-size:1.02rem}
+.sl output{font-variant-numeric:tabular-nums;font-weight:600;color:var(--push);white-space:nowrap}
+.ends{display:flex;justify-content:space-between;font-size:.86rem;color:var(--muted);margin-top:.1rem}
+input[type=range]{width:100%;accent-color:var(--push);height:2rem;margin:.15rem 0 0;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.btn,.chips button{font:inherit;font-size:.92rem;padding:.4rem .85rem;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;cursor:pointer}
+.btn:hover,.chips button:hover{border-color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk{display:flex;gap:.6rem;align-items:center;font-weight:500;cursor:pointer}
+.chk input{width:1.15rem;height:1.15rem;accent-color:var(--push)}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.readout .state{font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:600;line-height:1.1}
+.readout .k{font-family:'Barlow Condensed',sans-serif;font-size:clamp(3.4rem,8vw,5rem);font-weight:700;color:var(--push);line-height:1}
+.readout p{margin-top:.3rem}
+.bars{display:grid;gap:.5rem;margin-top:1rem}
+.bar{display:grid;grid-template-columns:3.2rem 1fr 4rem;align-items:center;gap:.6rem;font-size:.95rem}
+.bar i{display:block;height:.8rem;background:var(--line);border-radius:2px;position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:2px}
+.bar.on i b{background:var(--push)}
+.bar.on{font-weight:600}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.bar.w i b{background:var(--water)}
+.bar.g i b{background:var(--ok)}
+/* metrics */
+.metrics{display:grid;gap:1rem 1.6rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:2rem}
+.m{border-top:4px solid var(--line);padding-top:.6rem}
+.m.ok{border-color:var(--ok)} .m.bad{border-color:var(--push)} .m.warn{border-color:var(--warn)}
+.m .lbl{font-size:.92rem;color:var(--muted);font-weight:500}
+.m .val{font-family:'Barlow Condensed',sans-serif;font-size:2.6rem;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.m .val small{font-size:1rem;font-weight:500;color:var(--muted);margin-left:.25rem}
+.m .st{font-size:.92rem;font-weight:600}
+.m.ok .st{color:var(--ok)} .m.bad .st{color:var(--push)} .m.warn .st{color:var(--warn)}
+#mBars .bar{grid-template-columns:6.5rem 1fr 3rem}
+.hints{margin:1rem 0 0;padding:0;list-style:none;display:grid;gap:.35rem}
+.hints li{padding-left:1.1rem;position:relative;max-width:70ch}
+.hints li::before{content:"";position:absolute;left:0;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--push)}
+.hints li.good::before{background:var(--ok)}
+.stat{display:grid;gap:1rem}
+.stat .row{display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap}
+.stat .row .big{font-size:clamp(2.8rem,6.5vw,4.4rem);color:var(--push);font-variant-numeric:tabular-nums}
+.stat .row span{font-size:1.05rem}
+.stat .x{color:var(--muted);font-size:.95rem}
+.wnum{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2.6rem,6vw,3.8rem);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.wnum small{font-size:1.05rem;font-weight:500;color:var(--muted);margin-left:.3rem}
+.pile{max-width:220px}
+.type{transition:opacity .2s}
+.type.dim{opacity:.32}
+.type.on figcaption b{color:var(--push)}
+.reco{font-family:'Barlow Condensed',sans-serif;font-size:1.9rem;font-weight:600;line-height:1.15;margin-top:1rem;max-width:30ch}
+svg.drag{touch-action:none;cursor:ns-resize}
+/* tips & cheat */
+.tips{margin-top:2rem;display:grid;gap:0}
+.tip{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:1.5rem;padding:1.05rem 0;border-top:1px solid var(--line)}
+.tip:last-child{border-bottom:1px solid var(--line)}
+.tip h3{font-size:1.4rem}
+.tip p{margin:0}
+.tbl{overflow-x:auto;margin-top:1.5rem}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.98rem}
+th,td{text-align:left;padding:.6rem .8rem .6rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.9rem}
+td:first-child{font-weight:500;white-space:nowrap}
+.f{font-variant-numeric:lining-nums}
+.codes{margin-top:1.5rem;display:grid;gap:.4rem;padding:0;list-style:none}
+.codes li{max-width:70ch}
+.codes b{font-weight:600}
+footer{max-width:1140px;margin:0 auto;padding:2rem 1.25rem 3rem;color:var(--muted);font-size:.92rem;border-top:1px solid var(--line)}
+@media (max-width:860px){
+  .lab{grid-template-columns:1fr}
+  .tip{grid-template-columns:1fr;gap:.3rem}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">
+      <rect width="16" height="16" style="fill:var(--sand)"/>
+      <circle cx="4" cy="4" r="1.5" style="fill:var(--sand2)"/>
+      <circle cx="12" cy="11" r="1.1" style="fill:var(--sand2)"/>
+      <circle cx="9" cy="2" r=".8" style="fill:var(--sand2)"/>
+    </pattern>
+    <pattern id="clay" width="18" height="10" patternUnits="userSpaceOnUse">
+      <rect width="18" height="10" style="fill:var(--soil)"/>
+      <line x1="2" y1="5" x2="10" y2="5" style="stroke:var(--soil2);stroke-width:1.4"/>
+    </pattern>
+    <pattern id="conc" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="10" height="10" style="fill:var(--conc)"/>
+      <line x1="0" y1="0" x2="0" y2="10" style="stroke:var(--conc2);stroke-width:1.2"/>
+    </pattern>
+    <pattern id="gravel" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" style="fill:var(--conc)"/>
+      <circle cx="5" cy="5" r="3.6" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/>
+      <circle cx="15" cy="13" r="4.2" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/>
+      <circle cx="4" cy="16" r="2.4" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/>
+    </pattern>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--push)"/></marker>
+    <marker id="ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--water)"/></marker>
+    <marker id="ahk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+    <marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ok)"/></marker>
+  </defs>
+</svg>
+
+<main>
+<div class="top">
+  <a class="back" href="eli5-index.html">← All topics</a>
+  <div class="seg" role="group" aria-label="Colour theme">
+    <button type="button" data-th="auto" aria-pressed="true">Auto</button>
+    <button type="button" data-th="light" aria-pressed="false">Light</button>
+    <button type="button" data-th="dark" aria-pressed="false">Dark</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero" style="padding-top:1.5rem">
+  <h1>Retaining walls, in pictures</h1>
+  <p class="lede">Soil wants to slide down. A wall stops it. Everything else is about how hard the soil pushes, and whether the wall can take it.</p>
+  <div class="lab" style="align-items:center">
+    <figure>
+      <svg id="heroSvg" viewBox="0 0 720 400" role="img" aria-label="A wall holding back soil; remove it and the soil slumps to its natural slope">
+        <polygon id="heroSoil" class="f-sand" points="330,110 720,110 720,400 0,400 0,320 330,320"/>
+        <g id="heroGhost" opacity="0">
+          <polyline class="ghost" points="330,110 330,320"/>
+          <path class="s-ink" d="M189,320 A60,60 0 0,0 178.7,286.4"/>
+          <text x="196" y="306" font-size="28" font-style="italic">φ</text>
+          <text x="340" y="98" font-size="22">where the wall was</text>
+        </g>
+        <g id="heroWall">
+          <rect class="f-conc" x="240" y="320" width="180" height="28"/>
+          <rect class="f-conc" x="300" y="100" width="30" height="220"/>
+          <line class="s-push" x1="362" y1="150" x2="334" y2="150" marker-end="url(#ah)"/>
+          <line class="s-push" x1="392" y1="200" x2="334" y2="200" marker-end="url(#ah)"/>
+          <line class="s-push" x1="422" y1="250" x2="334" y2="250" marker-end="url(#ah)"/>
+          <line class="s-push" x1="452" y1="300" x2="334" y2="300" marker-end="url(#ah)"/>
+        </g>
+      </svg>
+    </figure>
+    <div>
+      <p id="heroCap" style="font-size:1.2rem;margin:0"><b>With a wall</b>, the soil leans on it, harder the deeper you go.</p>
+      <p style="margin-top:1.2rem"><button type="button" class="btn solid" id="heroBtn">Take the wall away</button></p>
+    </div>
+  </div>
+</section>
+
+<!-- DEPTH -->
+<section>
+  <h2>Soil pushes sideways, harder the deeper you go</h2>
+  <p>Think of a sack of rice standing up: the bottom bulges most. The sideways push is a fraction <b>K</b> of the weight of soil above. Change the height, and drag along the wall to read the pressure at any depth.</p>
+  <div class="lab">
+    <figure>
+      <svg id="depthSvg" class="drag" viewBox="0 0 620 510" role="img" aria-label="Wall with a triangular pressure diagram; height adjustable"></svg>
+      <p class="note">Dry sand, φ 30° (K<sub>a</sub> = 1/3), γ = 18 kN/m³. Pressure p = K·γ·z grows in a straight line; the total push P = ½·K·γ·H² acts at H/3 above the base.</p>
+    </figure>
+    <div class="ctl">
+      <div id="depthCtl"></div>
+      <div class="stat">
+        <div class="row"><span class="big" id="dP">75</span><span>kN push per metre of wall<br><span class="x" id="dPx"></span></span></div>
+        <div class="row"><span class="big" id="dM">125</span><span>kNm bending at the base, per metre<br><span class="x" id="dMx"></span></span></div>
+      </div>
+      <figure>
+        <svg id="hChart" viewBox="0 0 330 190" role="img" aria-label="Push grows with height squared, bending with height cubed"></svg>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- K LAB -->
+<section id="klab">
+  <h2>How hard it pushes depends on whether the wall moves</h2>
+  <p>Same soil, three very different pushes. Drag the sliders.</p>
+  <div class="lab">
+    <figure>
+      <svg id="labsvg" viewBox="0 0 900 480" role="img" aria-label="Wall that tilts away from or into the soil, with the pressure diagram and failure wedge">
+        <rect class="f-sand" x="0" y="380" width="330" height="100"/>
+        <rect class="f-sand" x="330" y="90" width="570" height="390"/>
+        <polygon id="wedge" points="362,420 552,90 362,90" style="fill:var(--push);fill-opacity:var(--pf);stroke:var(--push);stroke-width:2.5;stroke-dasharray:8 6"/>
+        <polygon id="ptri" class="f-push" points="362,90 362,420 375,420"/>
+        <g id="parrows"></g>
+        <g id="wall">
+          <rect class="f-conc" x="260" y="420" width="200" height="32"/>
+          <rect class="f-conc" x="330" y="80" width="30" height="340"/>
+        </g>
+        <text id="wlabel" x="700" y="150" font-size="24" text-anchor="middle"></text>
+      </svg>
+      <p class="note">5 m wall, γ = 18 kN/m³, dry soil, smooth vertical wall, level backfill (Rankine). Movement is exaggerated in the picture; the numbers are approximate.</p>
+      <div class="grid" style="margin-top:1.5rem">
+        <div><h3>At rest, K<sub>0</sub></h3><p>The wall can’t move. Basement walls held by floor slabs and walls on rock sit here. K<sub>0</sub> ≈ 1 − sin φ.</p></div>
+        <div><h3>Active, K<sub>a</sub></h3><p>The wall eases away a few mm (0.1–0.4% of H in sand). A soil wedge slips and the push drops to its minimum. Cantilever walls are designed for this.</p></div>
+        <div><h3>Passive, K<sub>p</sub></h3><p>The wall is shoved into the soil. Soil fights back up to 10× harder, but only after large movement (1–5% of H). This is the soil in front of the toe.</p></div>
+      </div>
+    </figure>
+    <div class="ctl">
+      <div>
+        <label for="mv" style="font-weight:600">How the wall moves</label>
+        <input id="mv" type="range" min="-100" max="100" value="60" step="1">
+        <div class="ends"><span>Pushed into soil</span><span>Stays put</span><span>Eases away</span></div>
+        <div class="chips">
+          <button type="button" data-mv="-100">Passive</button>
+          <button type="button" data-mv="0">At rest</button>
+          <button type="button" data-mv="100">Active</button>
+        </div>
+      </div>
+      <div>
+        <label for="phi" style="font-weight:600">Soil friction angle φ: <span id="phival">30</span>°</label>
+        <input id="phi" type="range" min="18" max="45" value="30" step="1">
+        <div class="chips" id="chips">
+          <button type="button" data-phi="22">Clay (drained)</button>
+          <button type="button" data-phi="29">Loose sand</button>
+          <button type="button" data-phi="32">Murum fill</button>
+          <button type="button" data-phi="37">Dense sand</button>
+          <button type="button" data-phi="42">Gravel</button>
+        </div>
+      </div>
+      <div class="readout" aria-live="polite">
+        <div class="state" id="state">Active</div>
+        <div class="k"><span id="kname">K</span> = <span id="kval">0.33</span></div>
+        <p id="push">Push on the wall ≈ 75 kN per metre run</p>
+        <p class="note" id="move">Wall top moves ≈ 9 mm</p>
+        <div class="bars">
+          <div class="bar" id="bKa"><span>K<sub>a</sub></span><i><b></b></i><span></span></div>
+          <div class="bar" id="bK0"><span>K<sub>0</sub></span><i><b></b></i><span></span></div>
+          <div class="bar" id="bKp"><span>K<sub>p</sub></span><i><b></b></i><span></span></div>
+        </div>
+      </div>
+      <figure class="pile">
+        <svg viewBox="0 0 200 95" role="img" aria-label="Heap of soil at slope φ">
+          <polygon id="pileShape" class="f-sand" points="20,88 180,88 100,42" style="stroke:var(--sand2);stroke-width:1.5"/>
+        </svg>
+        <figcaption class="note">φ is roughly the steepest slope a loose dry heap of that soil can stand at.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- WATER -->
+<section>
+  <h2>Water is the real enemy</h2>
+  <p>Water pushes equally in every direction, so for water K is 1, three times what dry sand gives. Raise the water table and watch the push.</p>
+  <div class="lab">
+    <figure>
+      <svg id="waterSvg" viewBox="0 0 620 420" role="img" aria-label="Wall with soil and water pressure diagrams; water level adjustable"></svg>
+      <p class="note">5 m wall, φ 30°, γ = 18 kN/m³ above water, 19 kN/m³ saturated. Below the water table the soil weighs less (γ′ ≈ 9.2 kN/m³) but the water adds its full pressure.</p>
+    </figure>
+    <div class="ctl">
+      <div id="waterCtl"></div>
+      <div class="chips">
+        <button type="button" class="btn" id="wBlock">Block the drains</button>
+        <button type="button" class="btn" id="wClear">Clear the drains</button>
+      </div>
+      <div>
+        <div class="wnum" id="wTot">75<small>kN per metre</small></div>
+        <p class="note" id="wRatio">Same as dry</p>
+        <div class="bars">
+          <div class="bar on"><span>Soil</span><i><b id="wbS"></b></i><span id="wvS"></span></div>
+          <div class="bar w"><span>Water</span><i><b id="wbW"></b></i><span id="wvW"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>So drain it</h2>
+  <figure style="margin-top:2rem">
+    <svg viewBox="0 0 1150 440" role="img" aria-label="Drainage details behind a retaining wall"><g transform="translate(150,0)">
+      <rect class="f-sand" x="-150" y="330" width="510" height="110"/>
+      <rect class="f-sand" x="360" y="70" width="540" height="370"/>
+      <rect class="f-clay" x="360" y="60" width="540" height="22"/>
+      <rect class="f-gravel" x="360" y="82" width="70" height="300"/>
+      <line x1="430" y1="82" x2="430" y2="382" style="stroke:var(--ink);stroke-width:2;stroke-dasharray:3 4"/>
+      <rect class="f-conc" x="290" y="382" width="250" height="34"/>
+      <rect class="f-conc" x="330" y="50" width="30" height="332"/>
+      <circle cx="400" cy="366" r="13" style="fill:var(--bg);stroke:var(--water);stroke-width:3"/>
+      <circle cx="394" cy="362" r="1.8" style="fill:var(--water)"/><circle cx="404" cy="370" r="1.8" style="fill:var(--water)"/><circle cx="405" cy="360" r="1.8" style="fill:var(--water)"/>
+      <g style="fill:var(--bg);stroke:var(--water);stroke-width:2">
+        <rect x="328" y="168" width="34" height="9"/><rect x="328" y="258" width="34" height="9"/><rect x="328" y="318" width="34" height="9"/>
+      </g>
+      <line class="s-water" x1="326" y1="172" x2="300" y2="190" marker-end="url(#ahw)"/>
+      <line class="s-water" x1="326" y1="262" x2="300" y2="280" marker-end="url(#ahw)"/>
+      <line class="s-water" x1="326" y1="322" x2="300" y2="340" marker-end="url(#ahw)"/>
+      <path class="s-water" d="M520,120 C500,160 470,190 440,210" marker-end="url(#ahw)"/>
+      <path class="s-water" d="M560,240 C520,260 480,280 440,290" marker-end="url(#ahw)"/>
+      <!-- labels -->
+      <line class="s-ink" x1="300" y1="172" x2="180" y2="120"/>
+      <text x="175" y="104" font-size="21" text-anchor="end">Weep holes, about 100 mm,</text>
+      <text x="175" y="128" font-size="21" text-anchor="end">every 1–2 m each way</text>
+      <line class="s-ink" x1="405" y1="130" x2="600" y2="40"/>
+      <text x="608" y="36" font-size="21">Gravel filter, free-draining</text>
+      <line class="s-ink" x1="432" y1="330" x2="640" y2="330"/>
+      <text x="648" y="336" font-size="21">Geotextile, so soil can’t clog it</text>
+      <line class="s-ink" x1="414" y1="372" x2="640" y2="392"/>
+      <text x="648" y="398" font-size="21">Perforated pipe at the heel</text>
+      <line class="s-ink" x1="820" y1="76" x2="820" y2="96"/>
+      <text x="890" y="118" font-size="21" text-anchor="end">Clay cap keeps rain out</text>
+    </g></svg>
+  </figure>
+  <p class="note">Drainage lets you design for less water, but only where the water table stays below the wall for good. In Mumbai basements the water table is usually high: design for full water pressure and uplift instead.</p>
+</section>
+
+<!-- MIXER -->
+<section>
+  <h2>What adds push, and what takes it away</h2>
+  <p>Mix the loads on one wall and watch the diagram build up.</p>
+  <div class="lab">
+    <figure>
+      <svg id="mixSvg" viewBox="0 0 640 540" role="img" aria-label="Wall with combined pressure diagram for surcharge, slope, cohesion and earthquake"></svg>
+      <p class="note">5 m wall, φ 30°, γ = 18 kN/m³, smooth vertical back (Coulomb / Mononobe–Okabe with δ = 0, α<sub>v</sub> = 0). The earthquake increment is drawn as a uniform band acting at mid-height.</p>
+    </figure>
+    <div class="ctl">
+      <div id="mixCtl"></div>
+      <div>
+        <div class="wnum" id="mTot">75<small>kN per metre</small></div>
+        <p class="note" id="mAt"></p>
+        <div class="bars" id="mBars"></div>
+        <p class="note" id="mWarn" style="color:var(--push)"></p>
+      </div>
+    </div>
+  </div>
+  <div class="grid small" style="margin-top:2.5rem">
+    <div><h3>Heavy rollers near the wall</h3><p>Compaction locks in extra push near the top. Use light plate compactors within about 1–1.5 m of the wall, in thin layers.</p></div>
+    <div><h3>Swelling clay</h3><p>Black cotton soil expands when wet and can push many times harder than K<sub>a</sub>. Never use it as backfill.</p></div>
+    <div><h3>Rough wall back</h3><p>Wall friction δ (about 2/3 φ) tilts the push downward and trims its horizontal part a little (Coulomb).</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Five ways a wall fails</h2>
+  <p>Each one is a check in the design. Try all of them in the design lab below.</p>
+  <div class="grid five">
+    <figure>
+      <svg viewBox="0 0 260 210" role="img" aria-label="Wall sliding forward">
+        <rect class="f-sand" x="0" y="150" width="110" height="60"/>
+        <rect class="f-sand" x="110" y="40" width="150" height="170"/>
+        <g class="ghost"><rect x="95" y="30" width="15" height="120"/><rect x="70" y="150" width="80" height="14"/></g>
+        <g transform="translate(-24,0)"><rect class="f-conc" x="70" y="150" width="80" height="14"/><rect class="f-conc" x="95" y="30" width="15" height="120"/></g>
+        <line x1="120" y1="185" x2="45" y2="185" style="stroke:var(--push);stroke-width:5" marker-end="url(#ah)"/>
+      </svg>
+      <figcaption class="cap"><b>Sliding.</b> Base friction plus passive soil at the toe must beat the push. IS 456 cl 20.2: FS ≥ 1.4.</figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 260 210" role="img" aria-label="Wall overturning about its toe">
+        <rect class="f-sand" x="0" y="164" width="110" height="46"/>
+        <rect class="f-sand" x="110" y="40" width="150" height="170"/>
+        <g class="ghost"><rect x="95" y="30" width="15" height="120"/><rect x="70" y="150" width="80" height="14"/></g>
+        <g transform="rotate(-14 70 164)"><rect class="f-conc" x="70" y="150" width="80" height="14"/><rect class="f-conc" x="95" y="30" width="15" height="120"/></g>
+        <path d="M120,40 Q80,20 50,50" style="stroke:var(--push);stroke-width:4;fill:none" marker-end="url(#ah)"/>
+      </svg>
+      <figcaption class="cap"><b>Overturning</b> about the toe. IS 456 cl 20.1: restoring ≥ 1.2 × dead-load + 1.4 × live-load overturning moment, counting only 0.9 × dead load as restoring.</figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 260 210" role="img" aria-label="Toe sinking into the soil">
+        <rect class="f-sand" x="0" y="150" width="110" height="60"/>
+        <rect class="f-sand" x="110" y="40" width="150" height="170"/>
+        <g transform="rotate(-6 150 164)"><rect class="f-conc" x="70" y="150" width="80" height="14"/><rect class="f-conc" x="95" y="30" width="15" height="120"/></g>
+        <line x1="78" y1="205" x2="78" y2="178" style="stroke:var(--push);stroke-width:4" marker-end="url(#ah)"/>
+        <line x1="100" y1="200" x2="100" y2="178" style="stroke:var(--push);stroke-width:3" marker-end="url(#ah)"/>
+        <line x1="122" y1="194" x2="122" y2="178" style="stroke:var(--push);stroke-width:2.5" marker-end="url(#ah)"/>
+      </svg>
+      <figcaption class="cap"><b>Bearing.</b> Pressure under the toe must stay below the safe bearing capacity, with no lift-off at the heel.</figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 260 210" role="img" aria-label="Deep slip circle under the wall">
+        <path d="M0,150 L90,150 L90,40 L260,40 L260,210 L0,210 Z" class="f-sand"/>
+        <path d="M20,150 Q120,270 245,40 L90,40 L90,150 Z" style="fill:var(--push);fill-opacity:.15"/>
+        <rect class="f-conc" x="70" y="150" width="80" height="14"/><rect class="f-conc" x="95" y="30" width="15" height="120"/>
+        <path d="M245,40 Q120,270 20,150" class="s-push" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+      </svg>
+      <figcaption class="cap"><b>Deep slip.</b> Wall and soil go together on a deep curve. Check overall stability; FS ≥ 1.5 is usual practice.</figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 260 210" role="img" aria-label="Stem cracking at the base">
+        <rect class="f-sand" x="0" y="150" width="110" height="60"/>
+        <rect class="f-sand" x="110" y="40" width="150" height="170"/>
+        <rect class="f-conc" x="70" y="150" width="80" height="14"/><rect class="f-conc" x="95" y="30" width="15" height="120"/>
+        <path d="M110,148 l-6,-6 l5,-6 l-6,-6" style="stroke:var(--push);stroke-width:3;fill:none"/>
+        <line class="s-push" x1="160" y1="70" x2="114" y2="70" marker-end="url(#ah)"/>
+        <line class="s-push" x1="190" y1="120" x2="114" y2="120" marker-end="url(#ah)"/>
+      </svg>
+      <figcaption class="cap"><b>Breaking.</b> The stem cracks on the soil face at the base, where bending is biggest. Design the stem, heel and toe as slabs (IS 456).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- STABILITY LAB -->
+<section id="design">
+  <h2>Design a wall: try to make every check pass</h2>
+  <p>A cantilever wall, 1 m strip. Change the shape and the ground, and watch the resultant move inside the base.</p>
+  <div class="metrics" id="metrics"></div>
+  <ul class="hints" id="hints"></ul>
+  <div class="lab" style="margin-top:1.5rem">
+    <figure>
+      <svg id="stabSvg" viewBox="0 0 640 640" role="img" aria-label="Cantilever wall to scale with resultant and base pressure diagram"></svg>
+      <p class="note">Rankine, level dry backfill, pressure on a vertical plane through the heel end. Concrete 25 kN/m³. Stem top 200 mm; stem base and base slab about H/12. Passive soil ignored, except in front of a shear key. Surcharge counted as load on the wall but not as weight that helps stability.</p>
+    </figure>
+    <div class="ctl">
+      <h4>Wall shape</h4>
+      <div id="stabWall"></div>
+      <h4>Ground</h4>
+      <div id="stabGround"></div>
+      <div class="chips">
+        <button type="button" class="btn" id="stabReset">Back to rule of thumb</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Pick the wall by height</h2>
+  <div class="lab" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end">
+    <div class="ctl"><div id="typeCtl"></div>
+      <label class="chk"><input type="checkbox" id="tProp"> Floor slabs will prop it (basement)</label>
+      <label class="chk"><input type="checkbox" id="tDig"> It must be built before digging</label>
+    </div>
+    <p class="reco" id="typeReco" aria-live="polite"></p>
+  </div>
+  <div class="grid five">
+    <figure class="type" data-t="gravity">
+      <svg viewBox="0 0 200 360" role="img" aria-label="Gravity wall">
+        <rect class="f-sand" x="0" y="320" width="200" height="40"/>
+        <polygon class="f-sand" points="110,232 200,232 200,320 145,320"/>
+        <polygon class="f-conc" points="70,230 100,230 145,330 55,330"/>
+      </svg>
+      <figcaption class="cap"><b>Gravity</b>, up to about 3 m. Sheer mass resists. Stone, PCC, gabions.</figcaption>
+    </figure>
+    <figure class="type" data-t="cantilever">
+      <svg viewBox="0 0 200 360" role="img" aria-label="Cantilever wall">
+        <rect class="f-sand" x="0" y="320" width="200" height="40"/>
+        <rect class="f-sand" x="104" y="148" width="96" height="190"/>
+        <rect class="f-conc" x="55" y="322" width="105" height="16"/>
+        <polygon class="f-conc" points="90,140 104,140 104,322 84,322"/>
+      </svg>
+      <figcaption class="cap"><b>Cantilever</b>, about 3 to 6–7 m. An upside-down T; soil on the heel holds it down.</figcaption>
+    </figure>
+    <figure class="type" data-t="counterfort">
+      <svg viewBox="0 0 200 360" role="img" aria-label="Counterfort wall">
+        <rect class="f-sand" x="0" y="320" width="200" height="40"/>
+        <rect class="f-sand" x="104" y="66" width="96" height="272"/>
+        <polygon points="104,80 104,322 180,322" style="fill:var(--conc2);fill-opacity:.55;stroke:var(--conc2);stroke-width:1.5"/>
+        <rect class="f-conc" x="50" y="322" width="135" height="16"/>
+        <rect class="f-conc" x="90" y="58" width="14" height="264"/>
+      </svg>
+      <figcaption class="cap"><b>Counterfort</b>, beyond about 7 m. Ribs behind the stem tie it to the heel; the stem spans sideways between ribs.</figcaption>
+    </figure>
+    <figure class="type" data-t="basement">
+      <svg viewBox="0 0 200 360" role="img" aria-label="Basement wall propped by floor slabs">
+        <rect class="f-sand" x="104" y="60" width="96" height="290"/>
+        <rect class="f-conc" x="0" y="330" width="200" height="20"/>
+        <rect class="f-conc" x="90" y="52" width="14" height="278"/>
+        <rect class="f-conc" x="0" y="52" width="90" height="10"/>
+        <rect class="f-conc" x="0" y="145" width="90" height="10"/>
+        <rect class="f-conc" x="0" y="238" width="90" height="10"/>
+        <line class="s-push" x1="140" y1="200" x2="106" y2="200" marker-end="url(#ah)"/>
+        <line class="s-push" x1="160" y1="290" x2="106" y2="290" marker-end="url(#ah)"/>
+      </svg>
+      <figcaption class="cap"><b>Basement wall.</b> Propped by the floor slabs, so it can’t move: design for K₀ plus water, spanning between floors.</figcaption>
+    </figure>
+    <figure class="type" data-t="embedded">
+      <svg viewBox="0 0 200 360" role="img" aria-label="Embedded wall with a strut">
+        <rect class="f-sand" x="104" y="60" width="96" height="300"/>
+        <rect class="f-sand" x="0" y="250" width="96" height="110"/>
+        <rect class="f-conc" x="96" y="56" width="10" height="300"/>
+        <rect x="0" y="86" width="96" height="8" style="fill:var(--ink)"/>
+      </svg>
+      <figcaption class="cap"><b>Embedded</b>: diaphragm wall, secant piles or sheet piles. Built before digging, held by struts, anchors or the soil below.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- SIZES & STEEL -->
+<section>
+  <h2>First-cut sizes, and where the steel goes</h2>
+  <div class="grid">
+    <figure>
+      <svg viewBox="0 0 680 610" role="img" aria-label="Proportions of a cantilever retaining wall">
+        <rect class="f-sand" x="0" y="400" width="680" height="210"/>
+        <rect class="f-sand" x="330" y="60" width="350" height="440"/>
+        <rect x="290" y="500" width="35" height="38" class="f-conc" style="stroke-dasharray:5 4"/>
+        <rect class="f-conc" x="205" y="460" width="240" height="40"/>
+        <polygon class="f-conc" points="300,60 330,60 330,460 285,460"/>
+        <line class="s-ink" x1="160" y1="60" x2="160" y2="500"/>
+        <line class="s-ink" x1="150" y1="60" x2="170" y2="60"/><line class="s-ink" x1="150" y1="500" x2="170" y2="500"/>
+        <text id="zH" x="140" y="285" font-size="24" text-anchor="end">H</text>
+        <line class="s-ink" x1="205" y1="575" x2="445" y2="575"/>
+        <line class="s-ink" x1="205" y1="565" x2="205" y2="585"/><line class="s-ink" x1="445" y1="565" x2="445" y2="585"/>
+        <text id="zB" x="325" y="604" font-size="22" text-anchor="middle">B</text>
+        <text x="315" y="46" font-size="22" text-anchor="middle">≥ 200 mm</text>
+        <text id="zT" x="245" y="452" font-size="20" text-anchor="middle">toe</text>
+        <line class="s-ink" x1="320" y1="440" x2="360" y2="400"/>
+        <text id="zS" x="364" y="396" font-size="20">stem</text>
+        <text id="zF" x="452" y="487" font-size="20">base</text>
+        <line class="s-ink" x1="325" y1="525" x2="360" y2="545"/>
+        <text x="364" y="552" font-size="20">shear key, if sliding governs</text>
+      </svg>
+      <div id="sizeCtl" style="margin-top:1rem"></div>
+    </figure>
+    <figure>
+      <svg id="steelSvg" viewBox="0 0 680 610" role="img" aria-label="Reinforcement in a cantilever wall with the stem bending moment diagram">
+        <rect class="f-sand" x="0" y="400" width="680" height="210"/>
+        <rect class="f-sand" x="330" y="60" width="350" height="440"/>
+        <path id="mCurve" class="f-push"/>
+        <rect class="f-conc" x="205" y="460" width="240" height="40"/>
+        <polygon class="f-conc" points="300,60 330,60 330,460 285,460"/>
+        <polyline class="s-steel" points="322,66 322,492 420,492"/>
+        <polyline class="s-steel" points="314,340 314,486 400,486" style="stroke-dasharray:9 5"/>
+        <line class="s-steel" x1="214" y1="492" x2="300" y2="492"/>
+        <line class="s-steel" x1="336" y1="468" x2="438" y2="468"/>
+        <line x1="296" y1="66" x2="290" y2="452" style="stroke:var(--muted);stroke-width:2"/>
+        <line class="s-ink" x1="324" y1="140" x2="380" y2="110"/>
+        <text x="386" y="104" font-size="20">main bars on the soil face</text>
+        <line class="s-ink" x1="316" y1="345" x2="380" y2="300"/>
+        <text x="386" y="290" font-size="20">every other bar can stop</text>
+        <text x="386" y="314" font-size="20">≈ 0.2 H + L<tspan font-size="14" dy="4">d</tspan><tspan dy="-4"> above base</tspan></text>
+        <line class="s-ink" x1="420" y1="468" x2="460" y2="430"/>
+        <text x="466" y="418" font-size="20">heel: top</text>
+        <text x="466" y="440" font-size="20">steel</text>
+        <line class="s-ink" x1="230" y1="494" x2="200" y2="540"/>
+        <text x="196" y="560" font-size="20" text-anchor="end">toe: bottom steel</text>
+        <g id="steelProbe"></g>
+      </svg>
+      <div id="steelCtl" style="margin-top:1rem"></div>
+      <p class="note" id="steelTxt"></p>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>Value engineering</h2>
+  <div class="tips">
+    <div class="tip"><h3>Settle the water first</h3><p>It can double the push. Drain where the water table stays low. Below a permanent water table, design for full water pressure and uplift, and don’t pretend drains will relieve it.</p></div>
+    <div class="tip"><h3>Choose the backfill</h3><p>Granular, free-draining, φ ≥ 30°, non-swelling. Going from φ 25° to 35° cuts K<sub>a</sub> by a third. Never black cotton soil.</p></div>
+    <div class="tip"><h3>Grow the heel, not the toe</h3><p>Soil sitting on the heel is free weight against sliding and overturning.</p></div>
+    <div class="tip"><h3>Shear key before a wider base</h3><p>If only sliding fails, a key under the stem is cheaper than more footing.</p></div>
+    <div class="tip"><h3>Taper and curtail</h3><p>Moment goes with h³. Thin the stem towards the top and stop alternate bars once the moment has halved.</p></div>
+    <div class="tip"><h3>Counterforts past 6–7 m</h3><p>A cantilever stem gets too thick and heavy in steel. Ribs at about H/3 to H/2 spacing turn the stem into a slab spanning between them.</p></div>
+    <div class="tip"><h3>Let floors prop basement walls</h3><p>A propped wall spanning floor to floor is far thinner than a cantilever. Design it for K<sub>0</sub> plus water, and check the temporary stage before the slabs are cast.</p></div>
+    <div class="tip"><h3>Be honest about passive</h3><p>Ignore the top metre or so in front of the toe; it can be dug out for drains or services later.</p></div>
+    <div class="tip"><h3>Don’t bank on cohesion</h3><p>For permanent works use drained strength (c′, φ′) of the backfill, not short-term undrained clay strength.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Cheat sheet</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>What</th><th>Formula</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Active</td><td class="f">K<sub>a</sub> = (1 − sin φ)/(1 + sin φ) = tan²(45° − φ/2)</td><td>Rankine: smooth vertical wall, level fill</td></tr>
+        <tr><td>Passive</td><td class="f">K<sub>p</sub> = 1/K<sub>a</sub> = tan²(45° + φ/2)</td><td>Needs large movement; apply a factor or ignore the top part</td></tr>
+        <tr><td>At rest</td><td class="f">K<sub>0</sub> = 1 − sin φ</td><td>Jaky. Over-consolidated soil: × OCR<sup>sin φ</sup></td></tr>
+        <tr><td>Pressure</td><td class="f">p = K γ z;  P = ½ K γ H² at H/3</td><td>Per metre run of wall</td></tr>
+        <tr><td>Surcharge q</td><td class="f">Δp = K q;  ΔP = K q H at H/2</td><td>Line and point loads: Boussinesq</td></tr>
+        <tr><td>Water</td><td class="f">u = γw z;  soil below water uses γ′ = γsat − γw</td><td>K = 1 for water. γw ≈ 9.81 kN/m³</td></tr>
+        <tr><td>Cohesion</td><td class="f">p<sub>a</sub> = K<sub>a</sub>γz − 2c√K<sub>a</sub>;  p<sub>p</sub> = K<sub>p</sub>γz + 2c√K<sub>p</sub></td><td>Tension crack depth z<sub>0</sub> = 2c/(γ√K<sub>a</sub>)</td></tr>
+        <tr><td>Sloping fill β</td><td class="f">K<sub>a</sub> = cos β (cos β − √(cos²β − cos²φ)) / (cos β + √(cos²β − cos²φ))</td><td>Push acts parallel to the slope</td></tr>
+        <tr><td>Wall friction δ</td><td class="f">Coulomb K<sub>a</sub>, with δ ≈ 2/3 φ</td><td>Push inclined at δ; smaller horizontal part</td></tr>
+        <tr><td>Earthquake</td><td class="f">Mononobe–Okabe K<sub>ae</sub>, with αh and αv</td><td>Dynamic increment acts higher, about 0.5–0.6 H</td></tr>
+        <tr><td>Base pressure</td><td class="f">q = (V/B)(1 ± 6e/B)</td><td>Keep e ≤ B/6; q max ≤ safe bearing capacity</td></tr>
+        <tr><td>Sliding</td><td class="f">FS = (μ ΣV + P<sub>p</sub>) / ΣH ≥ 1.4</td><td>μ ≈ 0.4–0.6 (tan of base friction)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Typical soil</th><th>φ</th><th>γ (kN/m³)</th><th>K<sub>a</sub></th><th>K<sub>0</sub></th><th>K<sub>p</sub></th></tr></thead>
+      <tbody>
+        <tr><td>Soft clay, drained</td><td>20–25°</td><td>16–18</td><td>0.45</td><td>0.62</td><td>2.2</td></tr>
+        <tr><td>Loose sand</td><td>28–30°</td><td>16–17</td><td>0.35</td><td>0.52</td><td>2.9</td></tr>
+        <tr><td>Murum / weathered rock fill</td><td>30–35°</td><td>18–20</td><td>0.30</td><td>0.46</td><td>3.3</td></tr>
+        <tr><td>Dense sand</td><td>35–40°</td><td>18–20</td><td>0.24</td><td>0.39</td><td>4.1</td></tr>
+        <tr><td>Gravel, rubble</td><td>38–45°</td><td>19–21</td><td>0.20</td><td>0.34</td><td>4.9</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">K values shown for the middle of each φ range. Indicative only; design from the soil investigation report.</p>
+
+  <h3 style="margin-top:2.5rem">Indian codes to keep at hand</h3>
+  <ul class="codes">
+    <li><b>IS 456:2000, cl 20</b>: stability against overturning and sliding; member design of stem, heel and toe.</li>
+    <li><b>IS 1893 (Part 3):2014</b>: seismic design of bridges and retaining walls, dynamic earth pressure.</li>
+    <li><b>IS 14458 (Parts 1–3)</b>: guidelines for retaining walls in hill areas.</li>
+    <li><b>IS 6403</b>: bearing capacity of shallow foundations. <b>IS 1904</b>: design of shallow foundations.</li>
+    <li><b>IS 3370 (Part 2)</b>: crack-width control for water-tight basement and retaining walls.</li>
+    <li><b>IS 2720 (Parts 11, 12, 13)</b>: triaxial and direct shear tests for c and φ.</li>
+  </ul>
+</section>
+
+</main>
+<footer>For learning and first-cut sizing. Final design comes from the geotechnical report, the governing codes and the project design basis.</footer>
+
+<script>
+(function(){
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const rad = d => d*Math.PI/180;
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function S(tag, a, p){ const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+function T(p, x, y, txt, a){ const e = S('text', Object.assign({x:x, y:y, 'font-size':20}, a||{}), p); e.textContent = txt; return e; }
+function arrow(p, x1, y1, x2, y2, cls, m, extra){ return S('line', Object.assign({x1:x1, y1:y1, x2:x2, y2:y2, class:cls||'s-push', 'marker-end':'url(#'+(m||'ah')+')'}, extra||{}), p); }
+function clear(e){ while (e.firstChild) e.removeChild(e.firstChild); }
+function poly(p, pts, a){ return S('polygon', Object.assign({points: pts.map(q => q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ')}, a||{}), p); }
+const val = id => +$(id).value;
+function setVal(id, v){ const i = $(id); i.value = v; i.dispatchEvent(new Event('input')); }
+const ka = phi => { const s = Math.sin(rad(phi)); return (1-s)/(1+s); };
+function slider(host, o){
+  const w = document.createElement('div'); w.className = 'sl';
+  let h = '<div class="slh"><label for="'+o.id+'">'+o.label+'</label><output for="'+o.id+'" id="'+o.id+'o"></output></div>' +
+          '<input type="range" id="'+o.id+'" min="'+o.min+'" max="'+o.max+'" step="'+o.step+'" value="'+o.value+'">';
+  if (o.ends) h += '<div class="ends"><span>'+o.ends[0]+'</span><span>'+o.ends[1]+'</span></div>';
+  w.innerHTML = h; host.appendChild(w);
+  const i = w.querySelector('input'), out = w.querySelector('output');
+  const u = () => { out.innerHTML = o.fmt(+i.value); };
+  i.addEventListener('input', () => { u(); if (o.on) o.on(); });
+  u(); return i;
+}
+function animate(from, to, ms, fn, done){
+  if (reduce){ fn(to); if (done) done(); return; }
+  const t0 = performance.now();
+  function step(t){
+    const k = Math.min(1, (t-t0)/ms), e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k+2, 2)/2;
+    fn(from + (to-from)*e);
+    if (k < 1) requestAnimationFrame(step); else if (done) done();
+  }
+  requestAnimationFrame(step);
+}
+function svgY(svg, e){ const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()).y; }
+const fmt1 = v => (Math.round(v*10)/10).toFixed(1);
+
+/* ---------- theme ---------- */
+const root = document.documentElement;
+function setTheme(t){
+  if (t === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.th === t ? 'true' : 'false'));
+  try { localStorage.setItem('rw-theme', t); localStorage.setItem('es-theme', t); } catch(e) {}
+}
+let th = 'auto'; try { th = localStorage.getItem('es-theme') || localStorage.getItem('rw-theme') || 'auto'; } catch(e) {}
+setTheme(th);
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setTheme(b.dataset.th)));
+
+/* ---------- hero ---------- */
+let heroOn = true;
+function heroDraw(t){
+  const Ax = 330 + 110*t, Fx = 330 - 201*t;
+  $('heroSoil').setAttribute('points', Ax+',110 720,110 720,400 0,400 0,320 '+Fx+',320');
+  $('heroWall').setAttribute('opacity', 1-t);
+  $('heroWall').setAttribute('transform', 'translate(0,'+(-40*t)+')');
+  $('heroGhost').setAttribute('opacity', t);
+}
+$('heroBtn').addEventListener('click', () => {
+  const from = heroOn ? 0 : 1, to = heroOn ? 1 : 0;
+  heroOn = !heroOn;
+  $('heroBtn').disabled = true;
+  animate(from, to, 1100, heroDraw, () => { $('heroBtn').disabled = false; });
+  $('heroBtn').textContent = heroOn ? 'Take the wall away' : 'Put the wall back';
+  $('heroCap').innerHTML = heroOn ? '<b>With a wall</b>, the soil leans on it, harder the deeper you go.'
+                                  : '<b>No wall.</b> The soil slumps to its own natural slope, roughly its friction angle φ. That sideways urge is what the wall has to resist.';
+});
+
+/* ---------- depth lab ---------- */
+const dsv = $('depthSvg'), chart = $('hChart');
+slider($('depthCtl'), {id:'dH', label:'Wall height H', min:2, max:12, step:0.5, value:5, fmt:v => v.toFixed(1)+' m', on:depth});
+slider($('depthCtl'), {id:'dZ', label:'Read pressure at depth z', min:0, max:100, step:1, value:60, fmt:v => fmt1(v/100*val('dH'))+' m', on:depth});
+function depth(){
+  const H = val('dH'), s = 33, yb = 460, yt = yb - H*s, x0 = 224, k = 4;
+  $('dZo').textContent = fmt1(val('dZ')/100*H) + ' m';
+  clear(dsv);
+  S('rect', {x:0, y:yb, width:620, height:60, class:'f-sand'}, dsv);
+  S('rect', {x:222, y:yt, width:398, height:yb-yt, class:'f-sand'}, dsv);
+  S('rect', {x:0, y:yb-30, width:222, height:30, class:'f-sand'}, dsv);
+  const pb = 6*H, w = pb*k;
+  poly(dsv, [[x0,yt],[x0,yb],[x0+w,yb]], {class:'f-push'});
+  [0.25,0.5,0.75].forEach(f => { const len = w*f, y = yt + f*(yb-yt); if (len > 12) arrow(dsv, x0+len, y, x0+3, y); });
+  const yr = yb - (yb-yt)/3, xr = Math.min(600, x0 + w*0.67 + 80);
+  S('line', {x1:xr, y1:yr, x2:x0+4, y2:yr, style:'stroke:var(--push);stroke-width:6', 'marker-end':'url(#ah)'}, dsv);
+  T(dsv, xr, yr-12, 'P', {'font-size':26, 'font-weight':600, 'text-anchor':'end'});
+  S('rect', {x:150, y:yb, width:180, height:22, class:'f-conc'}, dsv);
+  S('rect', {x:200, y:yt-8, width:22, height:yb-yt+8, class:'f-conc'}, dsv);
+  S('line', {x1:120, y1:yt, x2:120, y2:yb, class:'s-ink'}, dsv);
+  S('line', {x1:110, y1:yt, x2:130, y2:yt, class:'s-ink'}, dsv);
+  S('line', {x1:110, y1:yb, x2:130, y2:yb, class:'s-ink'}, dsv);
+  T(dsv, 108, (yt+yb)/2+7, H.toFixed(1)+' m', {'text-anchor':'end', 'font-size':21, 'font-weight':600});
+  // probe
+  const f = val('dZ')/100, z = f*H, yp = yt + z*s, p = pb*f;
+  S('line', {x1:196, y1:yp, x2:612, y2:yp, class:'s-muted'}, dsv);
+  if (p*k > 10) S('line', {x1:x0+p*k, y1:yp, x2:x0+3, y2:yp, style:'stroke:var(--ink);stroke-width:3.5', 'marker-end':'url(#ahk)'}, dsv);
+  S('circle', {cx:x0+p*k, cy:yp, r:8, style:'fill:var(--ink);stroke:var(--halo);stroke-width:2.5'}, dsv);
+  T(dsv, 14, 34, 'At z = '+fmt1(z)+' m:  p = '+Math.round(p)+' kN/m²', {'font-size':24, 'font-weight':600});
+  // numbers
+  const P = 3*H*H, M = H*H*H, rP = (H/3)**2, rM = (H/3)**3;
+  const rx = r => Math.abs(r-1) < 0.01 ? 'same as a 3 m wall' : (r < 10 ? r.toFixed(1) : Math.round(r)) + '× a 3 m wall';
+  $('dP').textContent = Math.round(P);
+  $('dM').textContent = Math.round(M);
+  $('dPx').textContent = rx(rP);
+  $('dMx').textContent = rx(rM);
+  drawChart(H);
+}
+function drawChart(H){
+  clear(chart);
+  const X = h => 44 + (h-2)/10*270, Y = f => 160 - f*130;
+  S('line', {x1:44, y1:160, x2:318, y2:160, class:'s-ink'}, chart);
+  S('line', {x1:44, y1:20, x2:44, y2:160, class:'s-ink'}, chart);
+  [2,4,6,8,10,12].forEach(h => { S('line', {x1:X(h), y1:160, x2:X(h), y2:165, class:'s-ink'}, chart); T(chart, X(h), 184, h, {'font-size':16, 'text-anchor':'middle'}); });
+  T(chart, 318, 150, 'H (m)', {'font-size':16, 'text-anchor':'end'});
+  const curve = (fn, cls, sty) => { let d = ''; for (let h = 2; h <= 12.001; h += 0.25) d += (d ? 'L' : 'M') + X(h).toFixed(1) + ',' + Y(fn(h)).toFixed(1); S('path', {d:d, class:cls, style:sty||''}, chart); };
+  curve(h => h*h/144, 's-push');
+  curve(h => h*h*h/1728, 's-ink', 'stroke-width:2.5');
+  S('line', {x1:X(H), y1:20, x2:X(H), y2:160, class:'s-muted'}, chart);
+  S('circle', {cx:X(H), cy:Y(H*H/144), r:5, style:'fill:var(--push)'}, chart);
+  S('circle', {cx:X(H), cy:Y(H*H*H/1728), r:5, style:'fill:var(--ink)'}, chart);
+  S('line', {x1:56, y1:30, x2:80, y2:30, class:'s-push'}, chart);
+  T(chart, 86, 36, 'push, grows with H²', {'font-size':16});
+  S('line', {x1:56, y1:54, x2:80, y2:54, class:'s-ink', style:'stroke-width:2.5'}, chart);
+  T(chart, 86, 60, 'bending, grows with H³', {'font-size':16});
+}
+let dDrag = false;
+const fine = window.matchMedia('(pointer: fine)').matches;
+function dProbe(e){ const H = val('dH'), yt = 460 - H*33; const y = svgY(dsv, e); setVal('dZ', Math.round(Math.max(0, Math.min(1, (y-yt)/(H*33)))*100)); }
+dsv.addEventListener('pointerdown', e => { dProbe(e); if (fine){ dDrag = true; dsv.setPointerCapture(e.pointerId); } });
+dsv.addEventListener('pointermove', e => { if (dDrag) dProbe(e); });
+dsv.addEventListener('pointerup', () => { dDrag = false; });
+dsv.addEventListener('pointercancel', () => { dDrag = false; });
+if (fine) dsv.style.touchAction = 'none';
+depth();
+
+/* ---------- K lab ---------- */
+(function(){
+  const mv = $('mv'), phiR = $('phi'), H = 5, g = 18;
+  function ks(phi){ const s = Math.sin(rad(phi)); const Ka = (1-s)/(1+s); return {Ka:Ka, Kp:1/Ka, K0:1-s}; }
+  function update(){
+    const phi = +phiR.value, m = +mv.value/100;
+    const K3 = ks(phi), Ka = K3.Ka, Kp = K3.Kp, K0 = K3.K0;
+    $('phival').textContent = phi;
+    let K, frac;
+    if (m >= 0){ frac = (1-Math.exp(-6*m))/(1-Math.exp(-6)); K = K0 - (K0-Ka)*frac; }
+    else { frac = (1-Math.exp(-2.5*-m))/(1-Math.exp(-2.5)); K = K0 + (Kp-K0)*frac; }
+    if (frac > 0.95) K = m > 0 ? Ka : Kp;
+    let state, name = 'K', wl = '';
+    if (Math.abs(m) < 0.06){ state = 'At rest'; name = 'K<sub>0</sub>'; K = K0; }
+    else if (m > 0){ state = frac > 0.95 ? 'Active' : 'Easing towards active'; if (frac > 0.95){ name = 'K<sub>a</sub>'; wl = 'soil wedge slips down'; } }
+    else { state = frac > 0.95 ? 'Passive' : 'Building towards passive'; if (frac > 0.95){ name = 'K<sub>p</sub>'; wl = 'big wedge heaves up'; } }
+    $('state').textContent = state;
+    $('kname').innerHTML = name;
+    $('kval').textContent = K.toFixed(2);
+    $('push').textContent = 'Push on the wall ≈ ' + Math.round(0.5*K*g*H*H) + ' kN per metre run';
+    const mm = m >= 0 ? m*20 : -m*200;
+    $('move').textContent = Math.abs(m) < 0.06 ? 'The wall doesn’t move' : 'Wall top moves ≈ ' + Math.round(mm) + ' mm ' + (m > 0 ? 'away from the soil' : 'into the soil');
+    const ang = m >= 0 ? -m*3 : -m*5;
+    $('wall').setAttribute('transform', 'rotate(' + ang.toFixed(2) + ' 260 452)');
+    const w = K*40, x0 = 362, top = 90, bot = 420;
+    $('ptri').setAttribute('points', x0+','+top+' '+x0+','+bot+' '+(x0+w).toFixed(1)+','+bot);
+    const gA = $('parrows'); clear(gA);
+    [0.25,0.5,0.75,0.97].forEach(f => { const y = top + f*(bot-top), len = w*f; if (len >= 8) arrow(gA, x0+len, y, x0+3, y); });
+    const wedge = $('wedge');
+    if (Math.abs(m) < 0.06) wedge.style.opacity = 0;
+    else {
+      const a = rad(m > 0 ? 45 + phi/2 : 45 - phi/2), dx = (bot-top)/Math.tan(a);
+      let pts;
+      if (x0 + dx <= 900) pts = x0+','+bot+' '+(x0+dx).toFixed(1)+','+top+' '+x0+','+top;
+      else { const y = bot - (900-x0)*Math.tan(a); pts = x0+','+bot+' 900,'+y.toFixed(1)+' 900,'+top+' '+x0+','+top; }
+      wedge.setAttribute('points', pts);
+      wedge.style.opacity = Math.min(1, Math.abs(m)*1.6);
+      wedge.setAttribute('transform', 'translate(0,' + (m > 0 ? m*12 : m*14).toFixed(1) + ')');
+    }
+    $('wlabel').textContent = wl;
+    $('wlabel').setAttribute('x', m > 0 ? 600 : 720);
+    [['bKa',Ka],['bK0',K0],['bKp',Kp]].forEach(r => {
+      const el = $(r[0]); el.querySelector('b').style.width = Math.max(2, r[1]/Kp*100) + '%'; el.lastElementChild.textContent = r[1].toFixed(2);
+    });
+    const on = Math.abs(m) < 0.06 ? 'bK0' : (m > 0 ? 'bKa' : 'bKp');
+    ['bKa','bK0','bKp'].forEach(id => $(id).classList.toggle('on', id === on));
+    const h = Math.min(78, 80*Math.tan(rad(phi)));
+    $('pileShape').setAttribute('points', '20,88 180,88 100,' + (88-h).toFixed(1));
+    document.querySelectorAll('#chips button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.phi === phi ? 'true' : 'false'));
+  }
+  mv.addEventListener('input', update);
+  phiR.addEventListener('input', update);
+  document.querySelectorAll('#chips button').forEach(b => b.addEventListener('click', () => { phiR.value = b.dataset.phi; update(); }));
+  document.querySelectorAll('[data-mv]').forEach(b => b.addEventListener('click', () => {
+    const from = +mv.value, to = +b.dataset.mv;
+    animate(from, to, 700, v => { mv.value = Math.round(v); update(); });
+  }));
+  update();
+})();
+
+/* ---------- water lab ---------- */
+const wsv = $('waterSvg');
+slider($('waterCtl'), {id:'wH', label:'Water in the backfill', min:0, max:5, step:0.1, value:0,
+  fmt:v => v <= 0 ? 'none, dry' : (v >= 5 ? 'full height, 5 m' : fmt1(v)+' m deep'), on:water, ends:['dry','up to the top']});
+function water(){
+  const H = 5, s = 60, yt = 40, yb = 340, x0 = 177, k = 4.5, Ka = 1/3, g = 18, gw = 9.81, gp = 19 - gw;
+  const hw = val('wH'), dw = H - hw;
+  clear(wsv);
+  S('rect', {x:0, y:yb, width:620, height:80, class:'f-sand'}, wsv);
+  S('rect', {x:175, y:yt, width:445, height:yb-yt, class:'f-sand'}, wsv);
+  S('rect', {x:0, y:300, width:175, height:40, class:'f-sand'}, wsv);
+  const yw = yt + dw*s;
+  if (hw > 0.01){
+    S('rect', {x:175, y:yw, width:445, height:420-yw, style:'fill:var(--water);fill-opacity:var(--wf)'}, wsv);
+    S('line', {x1:175, y1:yw, x2:620, y2:yw, class:'s-water'}, wsv);
+    poly(wsv, [[400,yw-18],[420,yw-18],[410,yw-3]], {style:'fill:var(--water)'});
+    T(wsv, 612, yw-12, 'water table', {'text-anchor':'end', 'font-size':20, style:'fill:var(--water);font-weight:600'});
+  }
+  const N = 80, pS = [], pW = [];
+  for (let i = 0; i <= N; i++){
+    const z = H*i/N, ps = Ka*(g*Math.min(z,dw) + gp*Math.max(0,z-dw)), u = gw*Math.max(0,z-dw), y = yt + z*s;
+    pS.push([x0+ps*k, y]); pW.push([x0+(ps+u)*k, y]);
+  }
+  if (hw > 0.01) poly(wsv, pW.concat(pS.slice().reverse()), {class:'f-water'});
+  poly(wsv, [[x0,yt]].concat(pS).concat([[x0,yb]]), {class:'f-push'});
+  S('rect', {x:100, y:yb, width:230, height:26, class:'f-conc'}, wsv);
+  S('rect', {x:150, y:30, width:25, height:yb-30, class:'f-conc'}, wsv);
+  const Ps = Ka*(0.5*g*dw*dw + g*dw*(H-dw) + 0.5*gp*(H-dw)**2), Pw = 0.5*gw*(H-dw)**2, tot = Ps + Pw;
+  $('wTot').innerHTML = Math.round(tot) + '<small>kN per metre</small>';
+  const r = tot/75;
+  $('wRatio').textContent = r < 1.02 ? 'Dry: the baseline push.' : r.toFixed(1) + '× the dry push. ' + (r > 1.8 ? 'Most failures start here.' : '');
+  $('wbS').style.width = (Ps/165*100) + '%'; $('wvS').textContent = Math.round(Ps);
+  $('wbW').style.width = (Pw/165*100) + '%'; $('wvW').textContent = Math.round(Pw);
+}
+$('wBlock').addEventListener('click', () => { const f = val('wH'); animate(f, 5, 1400, v => setVal('wH', Math.round(v*10)/10)); });
+$('wClear').addEventListener('click', () => { const f = val('wH'); animate(f, 0, 1400, v => setVal('wH', Math.round(v*10)/10)); });
+water();
+
+/* ---------- load mixer ---------- */
+const msv = $('mixSvg'), mc = $('mixCtl');
+slider(mc, {id:'mq', label:'Load on top q', min:0, max:50, step:5, value:10, fmt:v => v + ' kN/m²', on:mix});
+slider(mc, {id:'mb', label:'Backfill slope β', min:0, max:25, step:1, value:0, fmt:v => v + '°', on:mix});
+slider(mc, {id:'mc', label:'Cohesion c′', min:0, max:20, step:1, value:0, fmt:v => v + ' kN/m²', on:mix});
+slider(mc, {id:'me', label:'Earthquake α<sub>h</sub>', min:0, max:0.24, step:0.01, value:0, fmt:v => v.toFixed(2), on:mix});
+function kae(phi, beta, theta){
+  const f = rad(phi), b = rad(beta), t = rad(theta);
+  const arg = Math.sin(f)*Math.sin(f-t-b);
+  const r = arg > 0 ? Math.sqrt(arg/(Math.cos(t)*Math.cos(b))) : 0;
+  return {K: Math.cos(f-t)**2/(Math.cos(t)**2*(1+r)**2), ok: arg > 0};
+}
+function mix(){
+  const phi = 30, g = 18, H = 5, q = val('mq'), b = val('mb'), c = val('mc'), ah = val('me');
+  const st = kae(phi, b, 0), Ka = st.K, eq = kae(phi, b, Math.atan(ah)*180/Math.PI);
+  const N = 200; let Pst = 0, Mst = 0; const pts = [];
+  const pz = z => Math.max(0, Ka*(g*z + q) - 2*c*Math.sqrt(Ka));
+  for (let i = 0; i <= N; i++){ const z = H*i/N; pts.push(z); }
+  for (let i = 0; i < N; i++){ const z = H*(i+0.5)/N, p = pz(z), dz = H/N; Pst += p*dz; Mst += p*dz*(H-z); }
+  const dP = ah > 0 ? Math.max(0, 0.5*g*H*H*(eq.K - Ka)) : 0, dp = dP/H;
+  const tot = Pst + dP, ybar = (Mst + dP*H/2)/(tot || 1);
+  const P0 = 0.5*Ka*g*H*H, Pq = Ka*q*H, Pc = Pst - P0 - Pq;
+  const z0 = c > 0 ? Math.max(0, (2*c*Math.sqrt(Ka) - Ka*q)/(Ka*g)) : 0;
+  // draw
+  clear(msv);
+  const s = 60, yt = 200, yb = 500, x0 = 177, k = 3.2, tb = Math.tan(rad(b));
+  const ys = x => yt - (x-175)*tb;
+  poly(msv, [[175,yt],[640,ys(640)],[640,540],[0,540],[0,470],[175,470]], {class: c > 0 ? 'f-clay' : 'f-sand'});
+  if (q > 0){
+    for (let x = 215; x < 630; x += 50){ const y = ys(x); arrow(msv, x, y-10-q*0.7, x, y-3, 's-ink', 'ahk'); }
+    T(msv, 196, Math.max(24, ys(196) - 26 - q*0.7), 'q = ' + q + ' kN/m²', {'font-size':20, 'font-weight':600});
+  }
+  if (z0 > 0.02){
+    const xc = 300, y0 = ys(xc); let d = 'M'+xc+','+y0; const n = 6;
+    for (let i = 1; i <= n; i++) d += ' L' + (xc + (i%2 ? -6 : 6)) + ',' + (y0 + z0*s*i/n).toFixed(1);
+    S('path', {d:d, style:'stroke:var(--bg);stroke-width:4;fill:none'}, msv);
+    T(msv, xc+14, y0 + z0*s/2 + 6, 'tension crack ' + z0.toFixed(1) + ' m', {'font-size':18});
+  }
+  if (ah > 0){
+    let d = 'M0,520'; for (let x = 0; x <= 640; x += 14) d += ' L' + x + ',' + (520 + ((x/14)%2 ? -1 : 1)*(3+ah*40)).toFixed(1);
+    S('path', {d:d, style:'stroke:var(--ink);stroke-width:2;fill:none'}, msv);
+  }
+  const outerS = [], outerE = [];
+  for (let i = 0; i <= 100; i++){ const z = H*i/100, p = pz(z), y = yt + z*s; outerS.push([x0+p*k, y]); outerE.push([x0+(p+dp)*k, y]); }
+  if (dP > 0.5) poly(msv, outerE.concat(outerS.slice().reverse()), {style:'fill:var(--warn);fill-opacity:var(--pf);stroke:var(--warn);stroke-width:2'});
+  poly(msv, [[x0,yt]].concat(outerS).concat([[x0,yb]]), {class:'f-push'});
+  const yr = yb - ybar*s, maxw = Math.max.apply(null, outerE.map(p => p[0])), xr = Math.min(630, maxw + 50);
+  S('line', {x1:xr, y1:yr, x2:x0+4, y2:yr, style:'stroke:var(--ink);stroke-width:5', 'marker-end':'url(#ahk)'}, msv);
+  T(msv, xr, yr-12, 'P', {'font-size':24, 'font-weight':600, 'text-anchor':'end'});
+  S('rect', {x:100, y:yb, width:230, height:26, class:'f-conc'}, msv);
+  S('rect', {x:150, y:yt-10, width:25, height:yb-yt+10, class:'f-conc'}, msv);
+  // readout
+  $('mTot').innerHTML = Math.round(tot) + '<small>kN per metre</small>';
+  $('mAt').textContent = 'Acts ' + ybar.toFixed(2) + ' m above the base (H/3 = 1.67 m). Base moment ≈ ' + Math.round(tot*ybar) + ' kNm per metre.';
+  const rows = [['Soil', P0, ''], ['Load on top', Pq, ''], ['Cohesion', Pc, 'g'], ['Earthquake', dP, '']];
+  $('mBars').innerHTML = rows.map(r => '<div class="bar '+(r[2]||'')+(r[0]==='Earthquake'?' eqb':'')+'"><span style="width:auto">'+r[0]+'</span><i><b style="width:'+Math.min(100, Math.abs(r[1])/200*100).toFixed(1)+'%'+(r[0]==='Earthquake'?';background:var(--warn)':'')+(r[0]==='Soil'||r[0]==='Load on top'?';background:var(--push)':'')+'"></b></i><span>'+(r[1] < -0.5 ? '−' : '')+Math.round(Math.abs(r[1]))+'</span></div>').join('');
+  $('mWarn').textContent = eq.ok || ah === 0 ? '' : 'Slope plus shaking is steeper than φ: the backfill itself would slide. Flatten the slope.';
+  if (!st.ok) $('mWarn').textContent = 'The slope is as steep as φ: the backfill itself is on the point of sliding.';
+}
+mix();
+
+/* ---------- stability lab ---------- */
+const ssv = $('stabSvg');
+const SW_ = $('stabWall'), SG_ = $('stabGround');
+slider(SW_, {id:'sH', label:'Height H', min:3, max:8, step:0.25, value:5, fmt:v => v.toFixed(2)+' m', on:stab});
+slider(SW_, {id:'sB', label:'Base width B', min:0.4, max:0.9, step:0.01, value:0.6, fmt:v => v.toFixed(2)+' H', on:stab});
+slider(SW_, {id:'sT', label:'Toe length', min:0.1, max:0.5, step:0.01, value:0.33, fmt:v => v.toFixed(2)+' B', on:stab});
+slider(SW_, {id:'sK', label:'Shear key depth', min:0, max:1, step:0.05, value:0, fmt:v => v ? Math.round(v*1000)+' mm' : 'none', on:stab});
+slider(SG_, {id:'sP', label:'Backfill friction angle φ', min:25, max:40, step:1, value:30, fmt:v => v+'°', on:stab});
+slider(SG_, {id:'sQ', label:'Load on top q', min:0, max:30, step:1, value:10, fmt:v => v+' kN/m²', on:stab});
+slider(SG_, {id:'sS', label:'Safe bearing capacity', min:100, max:400, step:10, value:200, fmt:v => v+' kN/m²', on:stab});
+slider(SG_, {id:'sM', label:'Base friction μ', min:0.4, max:0.6, step:0.01, value:0.5, fmt:v => v.toFixed(2), on:stab});
+$('stabReset').addEventListener('click', () => { [['sB',0.6],['sT',0.33],['sK',0]].forEach(r => setVal(r[0], r[1])); });
+function stab(){
+  const H = val('sH'), bf = val('sB'), tf = val('sT'), dk = val('sK'), phi = val('sP'), q = val('sQ'), SBC = val('sS'), mu = val('sM');
+  const g = 18, gc = 25, t = Math.max(0.3, H/12), ts = Math.max(0.25, H/12), hs = H - t;
+  let B = bf*H; const toe = tf*B; let heel = B - toe - ts, short = false;
+  if (heel < 0.3){ heel = 0.3; short = true; B = toe + ts + heel; }
+  $('sBo').textContent = B.toFixed(2) + ' m (' + bf.toFixed(2) + ' H)';
+  $('sTo').textContent = toe.toFixed(2) + ' m (' + tf.toFixed(2) + ' B)';
+  const Ka = ka(phi), Kp = 1/Ka;
+  const W = [[0.2*hs*gc, toe+ts-0.1], [0.5*(ts-0.2)*hs*gc, toe+2/3*(ts-0.2)], [B*t*gc, B/2], [heel*hs*g, toe+ts+heel/2]];
+  if (dk > 0) W.push([dk*0.3*gc, toe+ts/2]);
+  const SWt = W.reduce((a,w) => a + w[0], 0), Mr = W.reduce((a,w) => a + w[0]*w[1], 0);
+  const Pa = 0.5*Ka*g*H*H, Pq = Ka*q*H, SH = Pa + Pq, Moa = Pa*H/3, Moq = Pq*H/2, Mo = Moa + Moq;
+  const Pp = dk > 0 ? 0.5*Kp*g*(t+dk)**2 : 0;
+  const FSs = (mu*SWt + Pp)/SH, FSo = Mr/Mo, ISo = 0.9*Mr/(1.2*Moa + 1.4*Moq);
+  const Wq = q*heel, xq = toe + ts + heel/2, V = SWt + Wq, xbar = (Mr + Wq*xq - Mo)/V, e = B/2 - xbar;
+  let qmax, qmin, contact = B, lift = false;
+  if (xbar <= 0 || xbar >= B){ qmax = Infinity; qmin = 0; contact = 0; lift = true; }
+  else if (Math.abs(e) <= B/6){ qmax = V/B*(1 + 6*Math.abs(e)/B); qmin = V/B*(1 - 6*Math.abs(e)/B); }
+  else { const xe = e > 0 ? xbar : B - xbar; contact = 3*xe; qmax = 2*V/(3*xe); qmin = 0; lift = true; }
+  const Mu = 1.5*(Ka*g*hs**3/6 + Ka*q*hs*hs/2), dreq = Math.sqrt(Mu*1e6/(0.133*25*1000)), dprov = ts*1000 - 60;
+
+  // metrics
+  const tile = (cls, lbl, v, unit, st, sub) => '<div class="m '+cls+'"><div class="lbl">'+lbl+'</div><div class="val">'+v+(unit?'<small>'+unit+'</small>':'')+'</div><div class="st">'+st+'</div><div class="note">'+sub+'</div></div>';
+  const sOk = FSs >= 1.4, oCls = (FSo >= 2 && ISo >= 1) ? 'ok' : (ISo >= 1 ? 'warn' : 'bad');
+  const bOk = isFinite(qmax) && qmax <= SBC, eOk = !lift, dOk = dreq <= dprov;
+  $('metrics').innerHTML =
+    tile(sOk?'ok':'bad', 'Sliding', FSs.toFixed(2), '', sOk?'OK':'Slides', 'needs ≥ 1.4 (IS 456 cl 20.2)') +
+    tile(oCls, 'Overturning', FSo.toFixed(2), '', oCls==='ok'?'OK':(oCls==='warn'?'IS 456 only':'Topples'), 'IS 456 cl 20.1 ratio '+ISo.toFixed(2)+' (≥ 1); practice FS ≥ 2') +
+    tile(bOk?'ok':'bad', 'Toe pressure', isFinite(qmax)?Math.round(qmax):'—', 'kN/m²', bOk?'OK':'Too high', 'limit '+SBC+' kN/m²') +
+    tile(eOk?'ok':'bad', 'Resultant offset e', Math.abs(e).toFixed(2), 'm', eOk?'In the middle third':'Heel lifts off', 'limit B/6 = '+(B/6).toFixed(2)+' m') +
+    tile(dOk?'ok':'bad', 'Stem depth needed', Math.round(dreq), 'mm', dOk?'OK':'Stem too thin', 'provided ≈ '+Math.round(dprov)+' mm (M25, Fe500)');
+  const hints = [];
+  if (short) hints.push('No room for a heel: shorten the toe or widen the base.');
+  if (!sOk) hints.push('Sliding: add a shear key, or widen the base so more soil sits on the heel.');
+  if (oCls !== 'ok') hints.push('Overturning: lengthen the heel; the soil on it is free counterweight.');
+  if (!eOk) hints.push('Heel lifts off: widen the base or lengthen the toe so the resultant moves back to the middle.');
+  if (eOk && !bOk) hints.push('Toe pressure too high: widen the base, or lengthen the toe to spread the load.');
+  if (!dOk) hints.push('Stem too thin for the bending: thicken it at the base, or use a higher grade.');
+  if (!hints.length) hints.push('good|Every check passes. Now trim B or the toe to find the leanest base that still works.');
+  $('hints').innerHTML = hints.map(h => h.indexOf('good|') === 0 ? '<li class="good">'+h.slice(5)+'</li>' : '<li>'+h+'</li>').join('');
+
+  // drawing
+  clear(ssv);
+  const s = Math.min(66, 330/H), x0 = 110, yb = 420, ytop = yb - H*s, X = m => x0 + m*s, Y = h => yb - h*s;
+  S('rect', {x:0, y:yb, width:640, height:220, class:'f-sand'}, ssv);
+  S('rect', {x:X(toe+ts), y:ytop, width:640-X(toe+ts), height:yb-ytop, class:'f-sand'}, ssv);
+  S('rect', {x:0, y:Y(t+0.3), width:X(toe), height:(t+0.3)*s, class:'f-sand'}, ssv);
+  const xb = X(B), pk = 2.2;
+  if (q > 0) S('rect', {x:xb, y:ytop, width:Ka*q*pk, height:yb-ytop, style:'fill:var(--push);fill-opacity:var(--pf)'}, ssv);
+  poly(ssv, [[xb + Ka*q*pk, ytop], [xb + Ka*q*pk, yb], [xb + Ka*q*pk + Ka*g*H*pk, yb]], {class:'f-push'});
+  S('line', {x1:xb, y1:ytop-14, x2:xb, y2:yb, class:'s-muted'}, ssv);
+  if (q > 0) for (let x = X(toe+ts)+24; x < 630; x += 44) arrow(ssv, x, ytop-8-q*0.8, x, ytop-2, 's-ink', 'ahk');
+  if (dk > 0) S('rect', {x:X(toe+ts/2-0.15), y:yb-1, width:0.3*s, height:dk*s+1, class:'f-conc'}, ssv);
+  S('rect', {x:X(0), y:Y(t), width:B*s, height:t*s, class:'f-conc'}, ssv);
+  poly(ssv, [[X(toe+ts-0.2), ytop], [X(toe+ts), ytop], [X(toe+ts), Y(t)], [X(toe), Y(t)]], {class:'f-conc'});
+  T(ssv, 14, 30, 'B = ' + B.toFixed(2) + ' m, toe ' + toe.toFixed(2) + ' m, heel ' + heel.toFixed(2) + ' m', {'font-size':22});
+  // resultant
+  if (xbar > 0 && xbar < B){
+    const hx = X(xbar), n = Math.hypot(SH, V), L = 190, sx = hx + L*SH/n, sy = yb - L*V/n;
+    S('line', {x1:sx, y1:sy, x2:hx, y2:yb-2, style:'stroke:var(--ink);stroke-width:5', 'marker-end':'url(#ahk)'}, ssv);
+    T(ssv, sx + 8, sy + 6, 'R', {'font-size':26, 'font-weight':600});
+  }
+  // middle third + pressure
+  const yP = yb + dk*s + 30;
+  S('line', {x1:X(B/3), y1:yb, x2:X(B/3), y2:yP, class:'s-muted'}, ssv);
+  S('line', {x1:X(2*B/3), y1:yb, x2:X(2*B/3), y2:yP, class:'s-muted'}, ssv);
+  S('rect', {x:X(B/3), y:yP-10, width:B*s/3, height:8, style:'fill:'+(eOk?'var(--ok)':'var(--push)')}, ssv);
+  const kq = 100/Math.max(SBC*1.15, isFinite(qmax) ? qmax : 0);
+  if (isFinite(qmax) && contact > 0){
+    const cls = bOk ? 'f-ok' : 'f-push';
+    let pts;
+    if (e >= 0) pts = [[X(0),yP],[X(contact),yP],[X(contact),yP + (lift ? 0 : qmin*kq)],[X(0),yP + qmax*kq]];
+    else pts = [[X(B-contact),yP],[X(B),yP],[X(B),yP + qmax*kq],[X(B-contact),yP + (lift ? 0 : qmin*kq)]];
+    poly(ssv, pts, {class:cls});
+    T(ssv, e >= 0 ? X(0)-8 : X(B)+8, yP + qmax*kq + 6, Math.round(qmax), {'font-size':22, 'font-weight':600, 'text-anchor': e >= 0 ? 'end' : 'start'});
+    if (!lift) T(ssv, e >= 0 ? X(B)+8 : X(0)-8, yP + qmin*kq + 6, Math.round(qmin), {'font-size':22, 'text-anchor': e >= 0 ? 'start' : 'end'});
+  }
+  const ySBC = yP + SBC*kq;
+  S('line', {x1:X(0)-30, y1:ySBC, x2:Math.min(630, X(B)+150), y2:ySBC, style:'stroke:var(--push);stroke-width:2;stroke-dasharray:4 4'}, ssv);
+  T(ssv, Math.min(630, X(B)+150), ySBC - 8, 'safe bearing capacity', {'font-size':21, 'text-anchor':'end'});
+  T(ssv, X(B/2), yP - 16, 'middle third', {'font-size':21, 'text-anchor':'middle'});
+}
+stab();
+
+/* ---------- wall type picker ---------- */
+slider($('typeCtl'), {id:'tH', label:'Retained height', min:1, max:15, step:0.5, value:5, fmt:v => v.toFixed(1)+' m', on:types});
+$('tProp').addEventListener('change', types);
+$('tDig').addEventListener('change', types);
+function types(){
+  const H = val('tH'), prop = $('tProp').checked, dig = $('tDig').checked;
+  let pick, txt;
+  if (dig){ pick = 'embedded'; txt = 'Dig next to neighbours or below water? Build an embedded wall first, then excavate in stages with struts, anchors or the floors as props.'; }
+  else if (prop){ pick = 'basement'; txt = 'Floors will prop it: a basement wall spanning between slabs, designed for K<sub>0</sub> plus full water. Check the stage before the slabs are cast.'; }
+  else if (H <= 3){ pick = 'gravity'; txt = H.toFixed(1) + ' m: a gravity wall is simplest. A small cantilever works too.'; }
+  else if (H <= 7){ pick = 'cantilever'; txt = H.toFixed(1) + ' m: a cantilever wall is usually the most economical.'; }
+  else if (H <= 12){ pick = 'counterfort'; txt = H.toFixed(1) + ' m: a cantilever stem gets too thick. Add counterforts.'; }
+  else { pick = 'counterfort'; txt = H.toFixed(1) + ' m is very tall for a free-standing wall. Counterforts at the limit; consider terracing, anchors or an embedded wall.'; }
+  $('typeReco').innerHTML = txt;
+  document.querySelectorAll('.type').forEach(f => { const on = f.dataset.t === pick; f.classList.toggle('on', on); f.classList.toggle('dim', !on); });
+}
+types();
+
+/* ---------- sizes & steel ---------- */
+const r25 = mm => Math.round(mm/25)*25;
+slider($('sizeCtl'), {id:'zHs', label:'Wall height H', min:2, max:8, step:0.5, value:5, fmt:v => v.toFixed(1)+' m', on:sizes});
+function sizes(){
+  const H = val('zHs');
+  $('zH').textContent = 'H = ' + H.toFixed(1) + ' m';
+  $('zB').textContent = 'B ≈ ' + (0.5*H).toFixed(1) + '–' + (0.7*H).toFixed(1) + ' m';
+  $('zT').textContent = 'toe ≈ ' + (0.6*H/3).toFixed(1) + ' m';
+  $('zS').textContent = 'stem base ≈ ' + r25(Math.max(250, H/12*1000)) + '–' + r25(Math.max(300, H/10*1000)) + ' mm';
+  $('zF').textContent = 'base ≈ ' + r25(Math.max(300, H/12*1000)) + '–' + r25(Math.max(300, H/10*1000)) + ' mm';
+  steel();
+}
+const sv2 = $('steelSvg');
+(function(){
+  let d = 'M300,60';
+  for (let y = 60; y <= 460; y += 5){ const f = (y-60)/400; d += ' L' + (285 - 155*f*f*f).toFixed(1) + ',' + y; }
+  d += ' L285,460 Z';
+  $('mCurve').setAttribute('d', d);
+})();
+slider($('steelCtl'), {id:'stH', label:'Look at a height above the base', min:0, max:100, step:1, value:50, fmt:v => v + '% of H', on:steel});
+function steel(){
+  const H = val('zHs'), f = val('stH')/100, y = 460 - f*400, m = Math.pow(1-f, 3), x = 285 - 155*m;
+  const g = $('steelProbe'); clear(g);
+  S('line', {x1:20, y1:y, x2:340, y2:y, class:'s-muted'}, g);
+  S('circle', {cx:x, cy:y, r:7, style:'fill:var(--push);stroke:var(--halo);stroke-width:2'}, g);
+  T(g, 20, y - 10, 'M = ' + Math.round(m*100) + '% of base', {'font-size':20, 'font-weight':600});
+  const need = m > 0.5 ? 'all the base bars are still needed' : (m > 0.25 ? 'about half the bars are enough (stop the rest with anchorage length beyond)' : 'nominal-to-light steel is enough');
+  $('steelTxt').innerHTML = 'At ' + (f*H).toFixed(1) + ' m above the base of a ' + H.toFixed(1) + ' m wall, the stem moment is ' + Math.round(m*100) + '% of the base value: ' + need + '.';
+}
+sizes();
+})();
+
+</script>
+</body>
+</html>

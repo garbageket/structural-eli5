@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Transfer structures and floating columns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --ink:#1D2925; --muted:#53615B; --line:#C3CBC2; --panel:#E2E8E0;
+  --sand:#E6CD98; --sand2:#C6A668; --soil:#A38058; --soil2:#7F613D;
+  --conc:#C6CCCA; --conc2:#848E8B; --water:#1A6BA4; --push:#B01E2C; --ok:#2A7842; --warn:#9C5D00; --steel:#2B3A55;
+  --pf:.2; --wf:.22; --halo:#EEF1EC;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+    --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+    --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+    --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+  --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+  --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+  --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+main{max-width:1140px;margin:0 auto;padding:0 1.25rem 4rem}
+h1,h2,h3,.big{font-family:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:0}
+h1{font-size:clamp(2.6rem,7.5vw,5.6rem);max-width:15ch}
+h2{font-size:clamp(2rem,4.6vw,3.2rem);max-width:22ch}
+h3{font-size:1.4rem;font-weight:600}
+p{margin:.6rem 0 0;max-width:64ch}
+sub{font-size:.72em;line-height:0} sup{font-size:.72em;line-height:0}
+.lede{font-size:1.25rem;color:var(--muted);max-width:46ch;margin-top:1rem}
+section{padding:4rem 0 0}
+.note{color:var(--muted);font-size:.95rem}
+a{color:var(--ink)}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:'Barlow',system-ui,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:5px;stroke-linejoin:round}
+figure{margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-top:1.1rem;flex-wrap:wrap}
+.top a.back{font-weight:600;text-decoration:none;border:1.5px solid var(--line);border-radius:999px;padding:.3rem .9rem;font-size:.95rem}
+.top a.back:hover{border-color:var(--ink)}
+.kick{color:var(--muted);font-weight:600;font-size:.95rem;margin-top:1.6rem;letter-spacing:.02em}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:.9rem;border:0;background:transparent;color:var(--ink);padding:.3rem .8rem;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* fills & strokes */
+.f-sand{fill:url(#dots)} .f-clay{fill:url(#clay)}
+.f-conc{fill:url(#conc);stroke:var(--conc2);stroke-width:1.5}
+.f-slab{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.f-gravel{fill:url(#gravel)}
+.f-push{fill:var(--push);fill-opacity:var(--pf);stroke:var(--push);stroke-width:2}
+.f-water{fill:var(--water);fill-opacity:var(--wf);stroke:var(--water);stroke-width:2}
+.f-ok{fill:var(--ok);fill-opacity:var(--pf);stroke:var(--ok);stroke-width:2}
+.f-warn{fill:var(--warn);fill-opacity:var(--pf);stroke:var(--warn);stroke-width:2}
+.f-steel{fill:var(--steel)} .f-ink{fill:var(--ink)} .f-pushs{fill:var(--push)} .f-oks{fill:var(--ok)} .f-warns{fill:var(--warn)} .f-waters{fill:var(--water)} .f-none{fill:none}
+.s-push{stroke:var(--push);stroke-width:2.5;fill:none}
+.s-water{stroke:var(--water);stroke-width:2.5;fill:none}
+.s-ok{stroke:var(--ok);stroke-width:2.5;fill:none}
+.s-warn{stroke:var(--warn);stroke-width:2.5;fill:none}
+.s-ink{stroke:var(--ink);stroke-width:1.8;fill:none}
+.s-thick{stroke:var(--ink);stroke-width:4;fill:none}
+.s-beam{stroke:var(--conc2);stroke-width:6;fill:none;stroke-linecap:round}
+.s-muted{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:6 5}
+.s-grid{stroke:var(--line);stroke-width:1;fill:none}
+.s-steel{stroke:var(--steel);stroke-width:3.5;fill:none;stroke-linecap:round}
+.ghost{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-dasharray:6 5}
+/* layout */
+.lab{display:grid;gap:1.6rem 2.4rem;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);margin-top:2rem;align-items:start}
+.lab+.lab{margin-top:3rem}
+.ctl{display:grid;gap:1.2rem;align-content:start}
+.sls{display:grid;gap:1.1rem}
+.sl .slh{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.sl label{font-weight:600;font-size:1.02rem}
+.sl output{font-variant-numeric:tabular-nums;font-weight:600;color:var(--push);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--push);height:2rem;margin:.1rem 0 0;cursor:pointer}
+.cl{font-weight:600;font-size:1.02rem;margin-bottom:.1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem}
+.btn,.chips button{font:inherit;font-size:.92rem;padding:.4rem .85rem;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;cursor:pointer}
+.btn:hover,.chips button:hover{border-color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk{display:flex;gap:.6rem;align-items:center;font-weight:500;cursor:pointer}
+.chk input{width:1.15rem;height:1.15rem;accent-color:var(--push)}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.metrics{display:grid;gap:1rem 1.2rem;grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.m{border-top:4px solid var(--line);padding-top:.5rem}
+.m.ok{border-color:var(--ok)} .m.bad{border-color:var(--push)} .m.warn{border-color:var(--warn)}
+.m .lbl{font-size:.9rem;color:var(--muted);font-weight:500}
+.m .val{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.m .val small{font-size:.95rem;font-weight:500;color:var(--muted);margin-left:.25rem}
+.m .st{font-size:.9rem;font-weight:600}
+.m.ok .st{color:var(--ok)} .m.bad .st{color:var(--push)} .m.warn .st{color:var(--warn)}
+.m .sb{font-size:.85rem;color:var(--muted)}
+.bars{display:grid;gap:.5rem}
+.bar{display:grid;grid-template-columns:8.2rem 1fr 3.2rem;align-items:center;gap:.6rem;font-size:.93rem}
+.bar i{display:block;height:.8rem;background:var(--line);border-radius:2px;position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:2px}
+.bar.push i b{background:var(--push)} .bar.ok i b{background:var(--ok)} .bar.warn i b{background:var(--warn)} .bar.water i b{background:var(--water)}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.bar.on{font-weight:600}
+.said{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;font-weight:600;line-height:1.15;max-width:26ch}
+.hints{margin:.2rem 0 0;padding:0;list-style:none;display:grid;gap:.35rem}
+.hints li{padding-left:1.1rem;position:relative;max-width:70ch}
+.hints li::before{content:"";position:absolute;left:0;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--push)}
+.hints li.good::before{background:var(--ok)}
+.step{border:1.5px solid var(--line);border-radius:10px;padding:.5rem .8rem;transition:background .25s,border-color .25s}
+.step.on{border-color:var(--push);background:var(--panel)}
+/* quiz */
+.q{border-top:1px solid var(--line);padding:1rem 0}
+.q h3{font-size:1.35rem;margin-bottom:.6rem;max-width:34ch}
+.opts{display:flex;flex-wrap:wrap;gap:.5rem}
+.opts .btn{border-radius:10px;text-align:left}
+.opts .btn.right{border-color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}
+.opts .btn.right::before{content:"✓ "}
+.opts .btn.wrong{border-color:var(--push);box-shadow:inset 0 0 0 1.5px var(--push)}
+.opts .btn.wrong::before{content:"✗ "}
+.why{margin:.6rem 0 0}
+.score{font-weight:600;margin-top:.8rem}
+/* lists */
+.rules{margin:1.5rem 0 0;padding:0;list-style:none;display:grid;gap:0}
+.rules li{display:grid;grid-template-columns:2.2rem 1fr;gap:.8rem;padding:.8rem 0;border-top:1px solid var(--line);max-width:70ch}
+.rules li:last-child{border-bottom:1px solid var(--line)}
+.rules li b.n{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;color:var(--push);line-height:1}
+.codes{margin:1.2rem 0 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:0;list-style:none}
+.codes li{border:1.5px solid var(--line);border-radius:999px;padding:.25rem .8rem;font-size:.92rem}
+.tbl{overflow-x:auto;margin-top:1.2rem}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.98rem}
+th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.9rem}
+footer{max-width:1140px;margin:0 auto;padding:2rem 1.25rem 3rem;color:var(--muted);font-size:.92rem;border-top:1px solid var(--line)}
+footer a{font-weight:600}
+@media (max-width:860px){.lab{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" style="fill:var(--sand)"/><circle cx="4" cy="4" r="1.5" style="fill:var(--sand2)"/><circle cx="12" cy="11" r="1.1" style="fill:var(--sand2)"/><circle cx="9" cy="2" r=".8" style="fill:var(--sand2)"/></pattern>
+    <pattern id="clay" width="18" height="10" patternUnits="userSpaceOnUse"><rect width="18" height="10" style="fill:var(--soil)"/><line x1="2" y1="5" x2="10" y2="5" style="stroke:var(--soil2);stroke-width:1.4"/></pattern>
+    <pattern id="conc" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" style="fill:var(--conc)"/><line x1="0" y1="0" x2="0" y2="10" style="stroke:var(--conc2);stroke-width:1.2"/></pattern>
+    <pattern id="gravel" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" style="fill:var(--conc)"/><circle cx="5" cy="5" r="3.6" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/><circle cx="15" cy="13" r="4.2" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/></pattern>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--push)"/></marker>
+    <marker id="ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--water)"/></marker>
+    <marker id="ahk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+    <marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ok)"/></marker>
+  </defs>
+</svg>
+<main>
+<div class="top"><a class="back" href="eli5-index.html">← All topics</a>
+<div class="seg" role="group" aria-label="Colour theme"><button type="button" data-th="auto" aria-pressed="true">Auto</button><button type="button" data-th="light" aria-pressed="false">Light</button><button type="button" data-th="dark" aria-pressed="false">Dark</button></div></div>
+<div class="kick">18 · Tall buildings</div>
+<h1>Transfer structures and floating columns</h1>
+<p class="lede">When a column or wall above has no column below, the load must be carried sideways first. That detour is what a transfer structure does, and it comes at a cost.</p>
+<section><h2>A column sitting on a beam</h2><p>Move the load along the beam. The closer to the middle, the more the beam bends. See how deep it has to be.</p><div id="h0"></div></section>
+<section><h2>A wall that stops at the podium</h2><p>Above the podium, walls make the building stiff. Below, a few columns. That stiffness cliff makes the transfer floor a soft storey. Make the podium stiffer and watch the ratio.</p><div id="h1"></div></section>
+<section><h2>Check yourself</h2><div id="hq"></div></section>
+<section><h2>Keep in mind</h2><ul class="rules"><li><b class="n">1</b><span>Avoid transfers if you can. Try to line up walls and columns.</span></li><li><b class="n">2</b><span>If you must, make the transfer structure a deep beam or thick slab designed for strut-and-tie action.</span></li><li><b class="n">3</b><span>Check the soft storey at the transfer level and use shear walls to carry through.</span></li><li><b class="n">4</b><span>Put extra strength in the supporting columns: they carry the whole redirected load plus overturning.</span></li></ul><ul class="codes"><li>IS 456:2000 cl 29 (deep beams)</li><li>IS 1893 (Part 1):2016 Table 6</li><li>IS 13920:2016</li><li>IS 16700:2023</li></ul></section>
+</main>
+<footer>For learning and quick sense-checks. Design from the project design basis, the geotechnical report and the governing codes. <a href="eli5-index.html">All topics</a></footer>
+<script>
+
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const STY={stroke:1,'stroke-width':1,'stroke-dasharray':1,fill:1,'fill-opacity':1};
+function S(tag,a,p){const e=document.createElementNS(NS,tag);let st=a&&a.style?a.style+';':'';for(const k in a){if(k==='style')continue;if(STY[k])st+=k+':'+a[k]+';';else e.setAttribute(k,a[k])}if(st)e.setAttribute('style',st);if(p)p.appendChild(e);return e}
+function T(p,x,y,txt,a){const e=S('text',Object.assign({x:x,y:y,'font-size':22},a||{}),p);e.textContent=txt;return e}
+function clear(e){while(e.firstChild)e.removeChild(e.firstChild)}
+function pts(a){return a.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ')}
+function poly(p,a,at){return S('polygon',Object.assign({points:pts(a)},at||{}),p)}
+function pline(p,a,cls,at){return S('polyline',Object.assign({points:pts(a),class:cls||'s-ink'},at||{}),p)}
+function line(p,x1,y1,x2,y2,cls,at){return S('line',Object.assign({x1:x1,y1:y1,x2:x2,y2:y2,class:cls||'s-ink'},at||{}),p)}
+function rect(p,x,y,w,h,cls,at){return S('rect',Object.assign({x:x,y:y,width:Math.max(0,w),height:Math.max(0,h),class:cls},at||{}),p)}
+function circ(p,cx,cy,r,cls,at){return S('circle',Object.assign({cx:cx,cy:cy,r:r,class:cls},at||{}),p)}
+function path(p,d,cls,at){return S('path',Object.assign({d:d,class:cls||'s-ink'},at||{}),p)}
+function arrow(p,x1,y1,x2,y2,cls,m,at){return S('line',Object.assign({x1:x1,y1:y1,x2:x2,y2:y2,class:cls||'s-push','marker-end':'url(#'+(m||'ah')+')'},at||{}),p)}
+function dimH(p,x1,x2,y,label,o){o=o||{};line(p,x1,y,x2,y,'s-ink');line(p,x1,y-7,x1,y+7,'s-ink');line(p,x2,y-7,x2,y+7,'s-ink');if(label)T(p,(x1+x2)/2,y+(o.dy===undefined?-10:o.dy),label,{'text-anchor':'middle','font-size':o.fs||21})}
+function dimV(p,x,y1,y2,label,o){o=o||{};line(p,x,y1,x,y2,'s-ink');line(p,x-7,y1,x+7,y1,'s-ink');line(p,x-7,y2,x+7,y2,'s-ink');if(label)T(p,x+(o.dx===undefined?-10:o.dx),(y1+y2)/2+7,label,{'text-anchor':o.anchor||'end','font-size':o.fs||21})}
+function pin(p,x,y,s){s=s||16;poly(p,[[x,y],[x-s,y+s*1.4],[x+s,y+s*1.4]],{class:'f-slab',stroke:'var(--ink)','stroke-width':2});line(p,x-s*1.4,y+s*1.4,x+s*1.4,y+s*1.4,'s-ink')}
+function roller(p,x,y,s){s=s||16;poly(p,[[x,y],[x-s,y+s*1.2],[x+s,y+s*1.2]],{class:'f-slab',stroke:'var(--ink)','stroke-width':2});circ(p,x-s*.5,y+s*1.2+5,5,'f-slab',{stroke:'var(--ink)'});circ(p,x+s*.5,y+s*1.2+5,5,'f-slab',{stroke:'var(--ink)'});line(p,x-s*1.4,y+s*1.2+10,x+s*1.4,y+s*1.2+10,'s-ink')}
+function fixedWall(p,x,y1,y2,side){const w=16;rect(p,side<0?x-w:x,y1,w,y2-y1,'f-conc');}
+function fixedBase(p,x1,x2,y){rect(p,x1,y,x2-x1,14,'f-conc')}
+const nice=x=>{const e=Math.pow(10,Math.floor(Math.log10(x))),f=x/e;return (f<1.5?1:f<3?2:f<7?5:10)*e};
+function ticks(a,b,n){const st=nice((b-a)/n),r=[];for(let v=Math.ceil(a/st-1e-9)*st;v<=b+1e-9;v+=st)r.push(+v.toFixed(10));return r}
+const fmtT=v=>Math.abs(v)>=10000?(v/1000)+'k':(+v.toFixed(3))+'';
+function plot(g,o){const x=o.x===undefined?72:o.x,y=o.y===undefined?24:o.y,w=o.w||530,h=o.h||300;
+  const X=v=>x+(v-o.x0)/(o.x1-o.x0)*w,Y=v=>y+h-(v-o.y0)/(o.y1-o.y0)*h;
+  const xs=Array.isArray(o.xt)?o.xt:ticks(o.x0,o.x1,o.xt||5),ys=Array.isArray(o.yt)?o.yt:ticks(o.y0,o.y1,o.yt||5);
+  xs.forEach(v=>{line(g,X(v),y,X(v),y+h,'s-grid');T(g,X(v),y+h+24,fmtT(v),{'font-size':18,'text-anchor':'middle'})});
+  ys.forEach(v=>{line(g,x,Y(v),x+w,Y(v),'s-grid');T(g,x-8,Y(v)+6,fmtT(v),{'font-size':18,'text-anchor':'end'})});
+  line(g,x,y+h,x+w,y+h,'s-ink');line(g,x,y,x,y+h,'s-ink');
+  if(o.xl)T(g,x+w,y+h+50,o.xl,{'font-size':19,'text-anchor':'end'});
+  if(o.yl)T(g,x,y-8,o.yl,{'font-size':19});
+  return {X:X,Y:Y,x:x,y:y,w:w,h:h,o:o}}
+function curve(g,P,fn,a,b,cls,n,at){n=n||120;const q=[];for(let i=0;i<=n;i++){const v=a+(b-a)*i/n;let yv=fn(v);if(!isFinite(yv))continue;{const lo=Math.min(P.o.y0,P.o.y1),hi=Math.max(P.o.y0,P.o.y1),pd=(hi-lo)*.05;yv=clamp(yv,lo-pd,hi+pd)};q.push([P.X(v),P.Y(yv)])}return pline(g,q,cls||'s-push',at)}
+let _id=0;
+function slider(host,o){const id='sl'+(++_id);let w=host.querySelector(':scope > .sls');if(!w){w=document.createElement('div');w.className='sls';host.appendChild(w)}
+  const d=document.createElement('div');d.className='sl';
+  d.innerHTML='<div class="slh"><label for="'+id+'">'+o.label+'</label><output for="'+id+'"></output></div><input type="range" id="'+id+'" min="'+o.min+'" max="'+o.max+'" step="'+o.step+'" value="'+o.value+'">';
+  w.appendChild(d);const i=d.querySelector('input'),out=d.querySelector('output');
+  const u=()=>{out.innerHTML=o.fmt?o.fmt(+i.value):i.value};
+  i.addEventListener('input',()=>{u();if(o.on)o.on(+i.value)});u();
+  i.v=()=>+i.value;i.set=v=>{i.value=v;i.dispatchEvent(new Event('input'))};return i}
+function chips(host,items,on,init,label){const w=document.createElement('div');if(label){const l=document.createElement('div');l.className='cl';l.innerHTML=label;w.appendChild(l)}
+  const c=document.createElement('div');c.className='chips';w.appendChild(c);host.appendChild(w);let cur=init===undefined?items[0][1]:init;
+  const bs=items.map(it=>{const b=document.createElement('button');b.type='button';b.innerHTML=it[0];b.onclick=()=>set(it[1],true);c.appendChild(b);return [b,it[1]]});
+  function set(v,f){cur=v;bs.forEach(x=>x[0].setAttribute('aria-pressed',x[1]===v?'true':'false'));if(f&&on)on(v)}
+  set(cur,false);return {get:()=>cur,set:v=>set(v,true)}}
+function checkbox(host,label,on,init){const l=document.createElement('label');l.className='chk';l.innerHTML='<input type="checkbox"> '+label;const i=l.querySelector('input');i.checked=!!init;i.addEventListener('change',()=>{if(on)on(i.checked)});host.appendChild(l);i.v=()=>i.checked;return i}
+function button(host,label,on,solid){const b=document.createElement('button');b.type='button';b.className='btn'+(solid?' solid':'');b.innerHTML=label;b.onclick=on;host.appendChild(b);return b}
+function tiles(host,arr){host.innerHTML='<div class="metrics">'+arr.map(t=>'<div class="m '+(t.c||'')+'"><div class="lbl">'+t.l+'</div><div class="val">'+t.v+(t.u?'<small>'+t.u+'</small>':'')+'</div>'+(t.st?'<div class="st">'+t.st+'</div>':'')+(t.s?'<div class="sb">'+t.s+'</div>':'')+'</div>').join('')+'</div>'}
+function bars(host,rows){host.innerHTML='<div class="bars">'+rows.map(r=>'<div class="bar '+(r.c||'')+(r.on?' on':'')+'"><span>'+r.l+'</span><i><b style="width:'+clamp(r.v/(r.max||1)*100,1.5,100).toFixed(1)+'%"></b></i><span>'+(r.t===undefined?Math.round(r.v):r.t)+'</span></div>').join('')+'</div>'}
+function Lab(host,o){o=o||{};const d=document.createElement('div');d.className='lab';
+  d.innerHTML='<figure><svg viewBox="0 0 '+(o.w||640)+' '+(o.h||440)+'" role="img" aria-label="'+(o.label||'Interactive diagram')+'"></svg>'+(o.note?'<p class="note">'+o.note+'</p>':'')+'</figure><div class="ctl"><div class="cin"></div><div class="out"></div></div>';
+  host.appendChild(d);const ctl=d.querySelector('.cin');return {svg:d.querySelector('svg'),sl:ctl,out:d.querySelector('.out'),el:d}}
+function animate(from,to,ms,fn,done){if(reduce){fn(to);if(done)done();return}const t0=performance.now();function st(t){const k=Math.min(1,(t-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;fn(from+(to-from)*e);if(k<1)requestAnimationFrame(st);else if(done)done()}requestAnimationFrame(st)}
+function loop(el,fn){let vis=true,t0=performance.now(),on=true;if('IntersectionObserver' in window){new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&on)requestAnimationFrame(f)}).observe(el)}
+  function f(t){if(!on||!vis)return;fn((t-t0)/1000);requestAnimationFrame(f)}
+  if(reduce)fn(0.4);else requestAnimationFrame(f);return {stop:()=>{on=false}}}
+function quiz(host,items){const w=document.createElement('div');const score=document.createElement('p');score.className='score';let sc=0,dn=0;
+  items.forEach(it=>{const q=document.createElement('div');q.className='q';q.innerHTML='<h3>'+it.q+'</h3><div class="opts"></div><p class="why" hidden></p>';const ob=q.querySelector('.opts'),why=q.querySelector('.why');
+    it.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.className='btn';b.innerHTML=t;b.onclick=()=>{if(q.dataset.d)return;q.dataset.d=1;dn++;const ok=j===it.a;if(ok)sc++;b.classList.add(ok?'right':'wrong');if(!ok)ob.children[it.a].classList.add('right');why.hidden=false;why.innerHTML=(ok?'Right. ':'Not quite. ')+it.w;score.textContent=sc+' of '+items.length+' right'+(dn<items.length?' so far':'')};ob.appendChild(b)});
+    w.appendChild(q)});w.appendChild(score);host.appendChild(w)}
+const f0=v=>Math.round(v).toLocaleString('en-IN');
+const f1=v=>(Math.round(v*10)/10).toFixed(1);
+const f2=v=>(Math.round(v*100)/100).toFixed(2);
+const f3=v=>(Math.round(v*1000)/1000).toFixed(3);
+const ok=(c,a,b,x)=>c?a:(x||b);
+/* theme */
+const root=document.documentElement;
+function setTheme(t){if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',t);document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.th===t?'true':'false'));try{localStorage.setItem('es-theme',t)}catch(e){}}
+let _th='auto';try{_th=localStorage.getItem('es-theme')||(localStorage.getItem('rw-theme')||'auto')}catch(e){}
+setTheme(_th);document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>setTheme(b.dataset.th)));
+
+try{(function(H){
+
+const L=Lab(H,{h:470,label:'Transfer beam carrying a column load',note:'Point load on a simply supported transfer beam, M50, no self-weight. Depth from limiting moment: M<sub>u,lim</sub> = 0.133 f<sub>ck</sub> b d². Real transfer beams are deep: check shear, bearing and torsion too.'});
+const sL=slider(L.sl,{label:'Span L',min:4,max:16,step:.5,value:9,fmt:v=>f1(v)+' m',on:d});
+const sa=slider(L.sl,{label:'Load position along the span',min:.1,max:.9,step:.05,value:.5,fmt:v=>Math.round(v*100)+'%',on:d});
+const sP=slider(L.sl,{label:'Factored column load Pu',min:1000,max:30000,step:500,value:8000,fmt:v=>f0(v)+' kN',on:d});
+const sb=slider(L.sl,{label:'Beam width b',min:400,max:2000,step:100,value:1000,fmt:v=>v+' mm',on:d});
+function d(){const g=L.svg,Lm=sL.v(),a=sa.v(),P=sP.v(),b=sb.v();clear(g);
+ const R1=P*(1-a),R2=P*a,M=P*a*(1-a)*Lm,V=Math.max(R1,R2),dreq=Math.sqrt(M*1e6/(.133*50*b)),D=dreq+60;
+ const x0=70,w=500,xp=x0+a*w;
+ arrow(g,xp,40,xp,106,'s-push','ah',{'stroke-width':6});T(g,xp,30,f0(P)+' kN',{'text-anchor':'middle','font-size':21,'font-weight':600});
+ const hh=Math.min(70,Math.max(20,D/16));rect(g,x0,110,w,hh,'f-conc');pin(g,x0,110+hh,14);roller(g,x0+w,110+hh,14);
+ T(g,x0,110+hh+64,f0(R1)+' kN',{'text-anchor':'middle','font-size':20});T(g,x0+w,110+hh+64,f0(R2)+' kN',{'text-anchor':'middle','font-size':20});
+ const y=370,sc=90/Math.max(M,1);line(g,x0,y,x0+w,y,'s-ink');poly(g,[[x0,y],[xp,y+M*sc],[x0+w,y]],{class:'f-water'});
+ T(g,xp,y+M*sc+26,f0(M)+' kNm',{'text-anchor':'middle','font-size':21,'font-weight':600});T(g,x0,y-60,'bending moment',{'font-size':19});
+ const Ld=Lm*1000/D;
+ tiles(L.out,[{l:'Max moment',v:f0(M),u:'kNm'},{l:'Max shear',v:f0(V),u:'kN'},{l:'Depth needed',v:f0(D),u:'mm',c:Ld<4?'warn':'ok',st:'span/depth '+f1(Ld),s:Ld<4?'deep beam: use strut-and-tie':'normal flexure'},{l:'Moment ratio',v:f2(M/(P*Lm/4)),s:'to load at mid span',c:'warn'}])}
+d();
+
+})($("h0"))}catch(e){console.error("section 0",e)}
+try{(function(H){
+
+const L=Lab(H,{h:460,label:'Stiffness of the transfer storey compared with the storey above',note:'Storey stiffness: walls 1 / (h³/12EI + 1.2h/GA), columns 12EI/h³, same concrete. Soft storey if podium stiffness is under 70% of the storey above (IS 1893 Table 6).'});
+const sw=slider(L.sl,{label:'Number of walls above',min:2,max:10,step:1,value:6,fmt:v=>v+'',on:d});
+const sl=slider(L.sl,{label:'Wall length',min:2,max:10,step:.5,value:5,fmt:v=>f1(v)+' m',on:d});
+const st=slider(L.sl,{label:'Wall thickness',min:200,max:600,step:25,value:300,fmt:v=>v+' mm',on:d});
+const sn=slider(L.sl,{label:'Columns in the podium',min:4,max:30,step:1,value:12,fmt:v=>v+'',on:d});
+const sc=slider(L.sl,{label:'Podium column size',min:600,max:2000,step:100,value:1000,fmt:v=>v+' mm',on:d});
+const sh=slider(L.sl,{label:'Podium storey height',min:3.5,max:8,step:.5,value:5,fmt:v=>f1(v)+' m',on:d});
+function d(){const g=L.svg;clear(g);const nw=sw.v(),Lw=sl.v(),t=st.v()/1000,n=sn.v(),c=sc.v()/1000,hp=sh.v(),ha=3.2,E=1,G=.4;
+ const kw=Lw0=>{const I=t*Lw**3/12,A=t*Lw;return 1/(ha**3/(12*E*I)+1.2*ha/(G*E*A))},kc=(c,h)=>12*E*(c**4/12)/h**3;
+ const kA=nw*kw(),kP=n*kc(c,hp)+0,ratio=kP/kA;
+ const top=40,bot=360;rect(g,40,bot,520,14,'f-conc');
+ const wallsx=[];for(let i=0;i<nw;i++)wallsx.push(70+i*(480/Math.max(nw-1,1)));
+ for(let f=0;f<3;f++){const y1=top+f*60,y2=y1+60;line(g,60,y2,560,y2,'s-beam',{'stroke-width':4});wallsx.forEach(x=>rect(g,x-Math.max(4,t*14),y1,Math.max(8,t*28),60,'f-conc'))}
+ const py=top+180;line(g,60,py,560,py,'s-beam',{'stroke-width':8});
+ for(let i=0;i<n&&i<12;i++){const x=70+i*(480/Math.max(Math.min(n,12)-1,1));rect(g,x-c*9,py,c*18,bot-py,'f-conc')}
+ T(g,300,py+28,'transfer floor',{'text-anchor':'middle','font-size':20,'font-weight':600});
+ const rr=Math.min(ratio,1.2);T(g,550,top+90,'walls above',{'text-anchor':'end','font-size':20});
+ tiles(L.out,[{l:'Podium ÷ storey above',v:f2(ratio),c:ratio>=.8?'ok':ratio>=.7?'warn':'bad',st:ratio>=.7?(ratio>=.8?'Regular':'Close to soft'):ratio>=.6?'Soft storey':'Extreme soft storey',s:'needs ≥ 0.7'},{l:'Storey above',v:f0(kA*1000),s:'relative units'},{l:'Podium storey',v:f0(kP*1000),s:'relative units'}])}
+d();
+
+})($("h1"))}catch(e){console.error("section 1",e)}
+quiz($("hq"),[{"q": "A transfer beam\u2019s depth is mainly set by\u2026", "o": ["Wind", "Large bending and shear from the load it collects", "Fire"], "a": 1, "w": "All the column load above must bend through the beam to reach its supports. The moment is large, so the beam is deep."}, {"q": "Floating columns (stopping on a beam) are discouraged in seismic zones because\u2026", "o": ["They are ugly", "The load path is indirect and the beam can fail suddenly", "They need more concrete"], "a": 1, "w": "IS 1893 treats them as a vertical irregularity. Failure of the beam drops the column load abruptly."}, {"q": "Walls above, open columns below: the transfer floor is typically\u2026", "o": ["Stiff", "A soft storey", "Unaffected"], "a": 1, "w": "The sharp stiffness drop collects the drift in that storey."}]);
+</script>
+</body></html>

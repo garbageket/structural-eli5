@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Structural engineering in pictures: 30 topics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --ink:#1D2925; --muted:#53615B; --line:#C3CBC2; --panel:#E2E8E0;
+  --sand:#E6CD98; --sand2:#C6A668; --soil:#A38058; --soil2:#7F613D;
+  --conc:#C6CCCA; --conc2:#848E8B; --water:#1A6BA4; --push:#B01E2C; --ok:#2A7842; --warn:#9C5D00; --steel:#2B3A55;
+  --pf:.2; --wf:.22; --halo:#EEF1EC;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+    --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+    --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+    --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+  --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+  --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+  --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+main{max-width:1140px;margin:0 auto;padding:0 1.25rem 4rem}
+h1,h2,h3,.big{font-family:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:0}
+h1{font-size:clamp(2.6rem,7.5vw,5.6rem);max-width:15ch}
+h2{font-size:clamp(2rem,4.6vw,3.2rem);max-width:22ch}
+h3{font-size:1.4rem;font-weight:600}
+p{margin:.6rem 0 0;max-width:64ch}
+sub{font-size:.72em;line-height:0} sup{font-size:.72em;line-height:0}
+.lede{font-size:1.25rem;color:var(--muted);max-width:46ch;margin-top:1rem}
+section{padding:4rem 0 0}
+.note{color:var(--muted);font-size:.95rem}
+a{color:var(--ink)}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:'Barlow',system-ui,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:5px;stroke-linejoin:round}
+figure{margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-top:1.1rem;flex-wrap:wrap}
+.top a.back{font-weight:600;text-decoration:none;border:1.5px solid var(--line);border-radius:999px;padding:.3rem .9rem;font-size:.95rem}
+.top a.back:hover{border-color:var(--ink)}
+.kick{color:var(--muted);font-weight:600;font-size:.95rem;margin-top:1.6rem;letter-spacing:.02em}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:.9rem;border:0;background:transparent;color:var(--ink);padding:.3rem .8rem;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* fills & strokes */
+.f-sand{fill:url(#dots)} .f-clay{fill:url(#clay)}
+.f-conc{fill:url(#conc);stroke:var(--conc2);stroke-width:1.5}
+.f-slab{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.f-gravel{fill:url(#gravel)}
+.f-push{fill:var(--push);fill-opacity:var(--pf);stroke:var(--push);stroke-width:2}
+.f-water{fill:var(--water);fill-opacity:var(--wf);stroke:var(--water);stroke-width:2}
+.f-ok{fill:var(--ok);fill-opacity:var(--pf);stroke:var(--ok);stroke-width:2}
+.f-warn{fill:var(--warn);fill-opacity:var(--pf);stroke:var(--warn);stroke-width:2}
+.f-steel{fill:var(--steel)} .f-ink{fill:var(--ink)} .f-pushs{fill:var(--push)} .f-oks{fill:var(--ok)} .f-warns{fill:var(--warn)} .f-waters{fill:var(--water)} .f-none{fill:none}
+.s-push{stroke:var(--push);stroke-width:2.5;fill:none}
+.s-water{stroke:var(--water);stroke-width:2.5;fill:none}
+.s-ok{stroke:var(--ok);stroke-width:2.5;fill:none}
+.s-warn{stroke:var(--warn);stroke-width:2.5;fill:none}
+.s-ink{stroke:var(--ink);stroke-width:1.8;fill:none}
+.s-thick{stroke:var(--ink);stroke-width:4;fill:none}
+.s-beam{stroke:var(--conc2);stroke-width:6;fill:none;stroke-linecap:round}
+.s-muted{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:6 5}
+.s-grid{stroke:var(--line);stroke-width:1;fill:none}
+.s-steel{stroke:var(--steel);stroke-width:3.5;fill:none;stroke-linecap:round}
+.ghost{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-dasharray:6 5}
+/* layout */
+.lab{display:grid;gap:1.6rem 2.4rem;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);margin-top:2rem;align-items:start}
+.lab+.lab{margin-top:3rem}
+.ctl{display:grid;gap:1.2rem;align-content:start}
+.sls{display:grid;gap:1.1rem}
+.sl .slh{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.sl label{font-weight:600;font-size:1.02rem}
+.sl output{font-variant-numeric:tabular-nums;font-weight:600;color:var(--push);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--push);height:2rem;margin:.1rem 0 0;cursor:pointer}
+.cl{font-weight:600;font-size:1.02rem;margin-bottom:.1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem}
+.btn,.chips button{font:inherit;font-size:.92rem;padding:.4rem .85rem;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;cursor:pointer}
+.btn:hover,.chips button:hover{border-color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk{display:flex;gap:.6rem;align-items:center;font-weight:500;cursor:pointer}
+.chk input{width:1.15rem;height:1.15rem;accent-color:var(--push)}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.metrics{display:grid;gap:1rem 1.2rem;grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.m{border-top:4px solid var(--line);padding-top:.5rem}
+.m.ok{border-color:var(--ok)} .m.bad{border-color:var(--push)} .m.warn{border-color:var(--warn)}
+.m .lbl{font-size:.9rem;color:var(--muted);font-weight:500}
+.m .val{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.m .val small{font-size:.95rem;font-weight:500;color:var(--muted);margin-left:.25rem}
+.m .st{font-size:.9rem;font-weight:600}
+.m.ok .st{color:var(--ok)} .m.bad .st{color:var(--push)} .m.warn .st{color:var(--warn)}
+.m .sb{font-size:.85rem;color:var(--muted)}
+.bars{display:grid;gap:.5rem}
+.bar{display:grid;grid-template-columns:8.2rem 1fr 3.2rem;align-items:center;gap:.6rem;font-size:.93rem}
+.bar i{display:block;height:.8rem;background:var(--line);border-radius:2px;position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:2px}
+.bar.push i b{background:var(--push)} .bar.ok i b{background:var(--ok)} .bar.warn i b{background:var(--warn)} .bar.water i b{background:var(--water)}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.bar.on{font-weight:600}
+.said{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;font-weight:600;line-height:1.15;max-width:26ch}
+.hints{margin:.2rem 0 0;padding:0;list-style:none;display:grid;gap:.35rem}
+.hints li{padding-left:1.1rem;position:relative;max-width:70ch}
+.hints li::before{content:"";position:absolute;left:0;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--push)}
+.hints li.good::before{background:var(--ok)}
+.step{border:1.5px solid var(--line);border-radius:10px;padding:.5rem .8rem;transition:background .25s,border-color .25s}
+.step.on{border-color:var(--push);background:var(--panel)}
+/* quiz */
+.q{border-top:1px solid var(--line);padding:1rem 0}
+.q h3{font-size:1.35rem;margin-bottom:.6rem;max-width:34ch}
+.opts{display:flex;flex-wrap:wrap;gap:.5rem}
+.opts .btn{border-radius:10px;text-align:left}
+.opts .btn.right{border-color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}
+.opts .btn.right::before{content:"✓ "}
+.opts .btn.wrong{border-color:var(--push);box-shadow:inset 0 0 0 1.5px var(--push)}
+.opts .btn.wrong::before{content:"✗ "}
+.why{margin:.6rem 0 0}
+.score{font-weight:600;margin-top:.8rem}
+/* lists */
+.rules{margin:1.5rem 0 0;padding:0;list-style:none;display:grid;gap:0}
+.rules li{display:grid;grid-template-columns:2.2rem 1fr;gap:.8rem;padding:.8rem 0;border-top:1px solid var(--line);max-width:70ch}
+.rules li:last-child{border-bottom:1px solid var(--line)}
+.rules li b.n{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;color:var(--push);line-height:1}
+.codes{margin:1.2rem 0 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:0;list-style:none}
+.codes li{border:1.5px solid var(--line);border-radius:999px;padding:.25rem .8rem;font-size:.92rem}
+.tbl{overflow-x:auto;margin-top:1.2rem}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.98rem}
+th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.9rem}
+footer{max-width:1140px;margin:0 auto;padding:2rem 1.25rem 3rem;color:var(--muted);font-size:.92rem;border-top:1px solid var(--line)}
+footer a{font-weight:600}
+@media (max-width:860px){.lab{grid-template-columns:1fr}}
+
+.cards{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));margin-top:1.5rem}
+.card{border:1.5px solid var(--line);border-radius:14px;background:var(--bg);display:flex;flex-direction:column;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--ink)}
+.card .cl{display:block;padding:1rem 1.1rem .4rem;text-decoration:none;color:inherit;position:relative;flex:1}
+.card .ic{font-size:2.6rem;line-height:1;display:block}
+.card .no{position:absolute;top:1rem;right:1.1rem;font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:700;color:var(--muted)}
+.card h3{font-size:1.45rem;margin-top:.7rem}
+.card p{font-size:.96rem;color:var(--muted);margin:.4rem 0 0}
+.card .done{padding:.4rem 1.1rem .8rem;font-size:.9rem;color:var(--muted);display:flex;gap:.5rem;align-items:center;cursor:pointer}
+.card .done input{accent-color:var(--ok);width:1.1rem;height:1.1rem}
+.card.is-done{background:var(--panel)}
+.card.is-done h3::after{content:" ✓";color:var(--ok)}
+.tools{display:grid;gap:.9rem;margin-top:2rem}
+.tools input[type=search]{font:inherit;padding:.65rem 1rem;border:1.5px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);width:100%;max-width:420px}
+.gh{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;font-weight:700;margin:2.2rem 0 0}
+.prog{font-weight:600;color:var(--muted)}
+</style></head><body>
+<main>
+<div class="top"><span class="prog" id="prog"></span>
+<div class="seg" role="group" aria-label="Colour theme"><button type="button" data-th="auto" aria-pressed="true">Auto</button><button type="button" data-th="light" aria-pressed="false">Light</button><button type="button" data-th="dark" aria-pressed="false">Dark</button></div></div>
+<div class="kick">Explain like I know nothing</div>
+<h1>Structural engineering in pictures</h1>
+<p class="lede">Thirty topics, one page each. Big drawings, few words, sliders to play with, a short quiz at the end. Indian codes throughout. Works in light and dark mode.</p>
+<div class="tools"><input type="search" id="q" placeholder="Search topics" aria-label="Search topics"><div class="chips" id="chips"><button type="button" data-g="" aria-pressed="true">All</button><button type="button" data-g="Foundations of structural behaviour" aria-pressed="false">Foundations of structural behaviour</button><button type="button" data-g="RCC design" aria-pressed="false">RCC design</button><button type="button" data-g="Loads" aria-pressed="false">Loads</button><button type="button" data-g="Tall buildings" aria-pressed="false">Tall buildings</button><button type="button" data-g="Geotechnical and foundations" aria-pressed="false">Geotechnical and foundations</button><button type="button" data-g="Analysis and checking" aria-pressed="false">Analysis and checking</button><button type="button" data-g="Economy and practice" aria-pressed="false">Economy and practice</button></div></div>
+<div id="list"><article class="card" data-g="Foundations of structural behaviour" data-t="how loads flow through a building slab to beam to column to footing, with tributary areas."><a class="cl" href="eli5-01-load-path.html"><span class="ic" aria-hidden="true">🏗️</span><span class="no">01</span><h3>How loads flow through a building</h3><p>Slab to beam to column to footing, with tributary areas.</p></a><label class="done"><input type="checkbox" data-n="1"> Done</label></article>
+<article class="card" data-g="Foundations of structural behaviour" data-t="bending, shear and deflection in beams load a beam and read the shear and moment diagrams."><a class="cl" href="eli5-02-beam-bending.html"><span class="ic" aria-hidden="true">📏</span><span class="no">02</span><h3>Bending, shear and deflection in beams</h3><p>Load a beam and read the shear and moment diagrams.</p></a><label class="done"><input type="checkbox" data-n="2"> Done</label></article>
+<article class="card" data-g="Foundations of structural behaviour" data-t="columns and buckling push a column until it bows. slenderness decides the failure."><a class="cl" href="eli5-03-columns-buckling.html"><span class="ic" aria-hidden="true">🏛️</span><span class="no">03</span><h3>Columns and buckling</h3><p>Push a column until it bows. Slenderness decides the failure.</p></a><label class="done"><input type="checkbox" data-n="3"> Done</label></article>
+<article class="card" data-g="Foundations of structural behaviour" data-t="stiffness: the stiff member takes the load why a small size change moves most of the force."><a class="cl" href="eli5-04-stiffness.html"><span class="ic" aria-hidden="true">⚖️</span><span class="no">04</span><h3>Stiffness: the stiff member takes the load</h3><p>Why a small size change moves most of the force.</p></a><label class="done"><input type="checkbox" data-n="4"> Done</label></article>
+<article class="card" data-g="Foundations of structural behaviour" data-t="concrete and steel as materials stress-strain curves, creep and shrinkage, is 456 design values."><a class="cl" href="eli5-05-materials.html"><span class="ic" aria-hidden="true">🧱</span><span class="no">05</span><h3>Concrete and steel as materials</h3><p>Stress-strain curves, creep and shrinkage, IS 456 design values.</p></a><label class="done"><input type="checkbox" data-n="5"> Done</label></article>
+<article class="card" data-g="RCC design" data-t="limit state design factored combinations, which one governs, and why factors exist."><a class="cl" href="eli5-06-limit-state-design.html"><span class="ic" aria-hidden="true">🎯</span><span class="no">06</span><h3>Limit state design</h3><p>Factored combinations, which one governs, and why factors exist.</p></a><label class="done"><input type="checkbox" data-n="6"> Done</label></article>
+<article class="card" data-g="RCC design" data-t="how a reinforced concrete beam works neutral axis, steel strain and the brittle failure to avoid."><a class="cl" href="eli5-07-rc-beam.html"><span class="ic" aria-hidden="true">🔩</span><span class="no">07</span><h3>How a reinforced concrete beam works</h3><p>Neutral axis, steel strain and the brittle failure to avoid.</p></a><label class="done"><input type="checkbox" data-n="7"> Done</label></article>
+<article class="card" data-g="RCC design" data-t="slabs: one-way, two-way, flat load sharing, thickness, and punching shear at a column."><a class="cl" href="eli5-08-slabs.html"><span class="ic" aria-hidden="true">🔲</span><span class="no">08</span><h3>Slabs: one-way, two-way, flat</h3><p>Load sharing, thickness, and punching shear at a column.</p></a><label class="done"><input type="checkbox" data-n="8"> Done</label></article>
+<article class="card" data-g="RCC design" data-t="shear walls and cores in tall buildings core shape against sway, and coupled walls."><a class="cl" href="eli5-09-shear-walls-cores.html"><span class="ic" aria-hidden="true">🧬</span><span class="no">09</span><h3>Shear walls and cores in tall buildings</h3><p>Core shape against sway, and coupled walls.</p></a><label class="done"><input type="checkbox" data-n="9"> Done</label></article>
+<article class="card" data-g="RCC design" data-t="ductile detailing (is 13920) hoop spacing, hysteresis loops and strong column, weak beam."><a class="cl" href="eli5-10-ductile-detailing.html"><span class="ic" aria-hidden="true">🪢</span><span class="no">10</span><h3>Ductile detailing (IS 13920)</h3><p>Hoop spacing, hysteresis loops and strong column, weak beam.</p></a><label class="done"><input type="checkbox" data-n="10"> Done</label></article>
+<article class="card" data-g="Loads" data-t="earthquake loads is 1893 spectrum, zone, r factor and the base shear."><a class="cl" href="eli5-11-earthquake-loads.html"><span class="ic" aria-hidden="true">🌍</span><span class="no">11</span><h3>Earthquake loads</h3><p>IS 1893 spectrum, zone, R factor and the base shear.</p></a><label class="done"><input type="checkbox" data-n="11"> Done</label></article>
+<article class="card" data-g="Loads" data-t="wind loads on tall buildings pressure with height, and across-wind vortex shedding."><a class="cl" href="eli5-12-wind-loads.html"><span class="ic" aria-hidden="true">💨</span><span class="no">12</span><h3>Wind loads on tall buildings</h3><p>Pressure with height, and across-wind vortex shedding.</p></a><label class="done"><input type="checkbox" data-n="12"> Done</label></article>
+<article class="card" data-g="Loads" data-t="dead, live and imposed loads build a floor, weigh it, and see live load reduction."><a class="cl" href="eli5-13-dead-live-loads.html"><span class="ic" aria-hidden="true">📦</span><span class="no">13</span><h3>Dead, live and imposed loads</h3><p>Build a floor, weigh it, and see live load reduction.</p></a><label class="done"><input type="checkbox" data-n="13"> Done</label></article>
+<article class="card" data-g="Tall buildings" data-t="how a high-rise stands up frames, walls, cores, tubes, and the outrigger sweet spot."><a class="cl" href="eli5-14-lateral-systems.html"><span class="ic" aria-hidden="true">🗼</span><span class="no">14</span><h3>How a high-rise stands up</h3><p>Frames, walls, cores, tubes, and the outrigger sweet spot.</p></a><label class="done"><input type="checkbox" data-n="14"> Done</label></article>
+<article class="card" data-g="Tall buildings" data-t="drift, torsion and irregularities twist from offset mass, and the soft storey."><a class="cl" href="eli5-15-drift-torsion-irregularity.html"><span class="ic" aria-hidden="true">🌀</span><span class="no">15</span><h3>Drift, torsion and irregularities</h3><p>Twist from offset mass, and the soft storey.</p></a><label class="done"><input type="checkbox" data-n="15"> Done</label></article>
+<article class="card" data-g="Tall buildings" data-t="modal analysis animated mode shapes, periods and mass participation."><a class="cl" href="eli5-16-modal-analysis.html"><span class="ic" aria-hidden="true">🎼</span><span class="no">16</span><h3>Modal analysis</h3><p>Animated mode shapes, periods and mass participation.</p></a><label class="done"><input type="checkbox" data-n="16"> Done</label></article>
+<article class="card" data-g="Tall buildings" data-t="p-delta effects when weight makes the lean worse. the stability index."><a class="cl" href="eli5-17-p-delta.html"><span class="ic" aria-hidden="true">📐</span><span class="no">17</span><h3>P-Delta effects</h3><p>When weight makes the lean worse. The stability index.</p></a><label class="done"><input type="checkbox" data-n="17"> Done</label></article>
+<article class="card" data-g="Tall buildings" data-t="transfer structures and floating columns transfer beam sizing and the soft transfer floor."><a class="cl" href="eli5-18-transfer-structures.html"><span class="ic" aria-hidden="true">🔀</span><span class="no">18</span><h3>Transfer structures and floating columns</h3><p>Transfer beam sizing and the soft transfer floor.</p></a><label class="done"><input type="checkbox" data-n="18"> Done</label></article>
+<article class="card" data-g="Geotechnical and foundations" data-t="soil basics and bearing capacity three-phase soil and what the ground can carry."><a class="cl" href="eli5-19-soil-bearing-capacity.html"><span class="ic" aria-hidden="true">🌱</span><span class="no">19</span><h3>Soil basics and bearing capacity</h3><p>Three-phase soil and what the ground can carry.</p></a><label class="done"><input type="checkbox" data-n="19"> Done</label></article>
+<article class="card" data-g="Geotechnical and foundations" data-t="retaining walls and earth pressure active, passive, k values, water, and a wall design lab."><a class="cl" href="eli5-20-retaining-walls.html"><span class="ic" aria-hidden="true">🧗</span><span class="no">20</span><h3>Retaining walls and earth pressure</h3><p>Active, passive, K values, water, and a wall design lab.</p></a><label class="done"><input type="checkbox" data-n="20"> Done</label></article>
+<article class="card" data-g="Geotechnical and foundations" data-t="shallow versus deep foundations pick footings, raft or piles. pressure bulb under a raft."><a class="cl" href="eli5-21-foundation-types.html"><span class="ic" aria-hidden="true">🦶</span><span class="no">21</span><h3>Shallow versus deep foundations</h3><p>Pick footings, raft or piles. Pressure bulb under a raft.</p></a><label class="done"><input type="checkbox" data-n="21"> Done</label></article>
+<article class="card" data-g="Geotechnical and foundations" data-t="piles: how they carry load skin friction, tip bearing, groups and load tests."><a class="cl" href="eli5-22-piles.html"><span class="ic" aria-hidden="true">📍</span><span class="no">22</span><h3>Piles: how they carry load</h3><p>Skin friction, tip bearing, groups and load tests.</p></a><label class="done"><input type="checkbox" data-n="22"> Done</label></article>
+<article class="card" data-g="Geotechnical and foundations" data-t="basements, excavation, dewatering flotation check and the cone of depression."><a class="cl" href="eli5-23-basements-excavation.html"><span class="ic" aria-hidden="true">⛏️</span><span class="no">23</span><h3>Basements, excavation, dewatering</h3><p>Flotation check and the cone of depression.</p></a><label class="done"><input type="checkbox" data-n="23"> Done</label></article>
+<article class="card" data-g="Analysis and checking" data-t="how etabs models a building meshing, rigid diaphragms and modelling assumptions."><a class="cl" href="eli5-24-etabs-modelling.html"><span class="ic" aria-hidden="true">🖥️</span><span class="no">24</span><h3>How ETABS models a building</h3><p>Meshing, rigid diaphragms and modelling assumptions.</p></a><label class="done"><input type="checkbox" data-n="24"> Done</label></article>
+<article class="card" data-g="Analysis and checking" data-t="reading an etabs model like a reviewer five gauges, and a spot-the-red-flag quiz."><a class="cl" href="eli5-25-etabs-reviewer-red-flags.html"><span class="ic" aria-hidden="true">🚩</span><span class="no">25</span><h3>Reading an ETABS model like a reviewer</h3><p>Five gauges, and a spot-the-red-flag quiz.</p></a><label class="done"><input type="checkbox" data-n="25"> Done</label></article>
+<article class="card" data-g="Analysis and checking" data-t="cracked section modifiers moment-curvature, effective stiffness and building-level effect."><a class="cl" href="eli5-26-cracked-section-modifiers.html"><span class="ic" aria-hidden="true">🪨</span><span class="no">26</span><h3>Cracked section modifiers</h3><p>Moment-curvature, effective stiffness and building-level effect.</p></a><label class="done"><input type="checkbox" data-n="26"> Done</label></article>
+<article class="card" data-g="Economy and practice" data-t="value engineering in rcc framing floor systems by span and concrete grade stepping."><a class="cl" href="eli5-27-value-engineering-framing.html"><span class="ic" aria-hidden="true">💡</span><span class="no">27</span><h3>Value engineering in RCC framing</h3><p>Floor systems by span and concrete grade stepping.</p></a><label class="done"><input type="checkbox" data-n="27"> Done</label></article>
+<article class="card" data-g="Economy and practice" data-t="quantity benchmarks for towers concrete and steel intensity against typical bands."><a class="cl" href="eli5-28-quantity-benchmarks.html"><span class="ic" aria-hidden="true">📊</span><span class="no">28</span><h3>Quantity benchmarks for towers</h3><p>Concrete and steel intensity against typical bands.</p></a><label class="done"><input type="checkbox" data-n="28"> Done</label></article>
+<article class="card" data-g="Economy and practice" data-t="formwork and construction sequence form pressure, tie loads and safe striking times."><a class="cl" href="eli5-29-formwork-construction-sequence.html"><span class="ic" aria-hidden="true">🏗</span><span class="no">29</span><h3>Formwork and construction sequence</h3><p>Form pressure, tie loads and safe striking times.</p></a><label class="done"><input type="checkbox" data-n="29"> Done</label></article>
+<article class="card" data-g="Economy and practice" data-t="durability: cover, exposure, corrosion exposure classes and chloride initiation time."><a class="cl" href="eli5-30-durability.html"><span class="ic" aria-hidden="true">🛡️</span><span class="no">30</span><h3>Durability: cover, exposure, corrosion</h3><p>Exposure classes and chloride initiation time.</p></a><label class="done"><input type="checkbox" data-n="30"> Done</label></article>
+</div>
+</main>
+<footer>Learning aids and quick sense-checks. Final design comes from the project design basis, the geotechnical report and the governing codes.</footer>
+<script>
+const root=document.documentElement;
+function setTheme(t){if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',t);document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.th===t?'true':'false'));try{localStorage.setItem('es-theme',t)}catch(e){}}
+let th='auto';try{th=localStorage.getItem('es-theme')||localStorage.getItem('rw-theme')||'auto'}catch(e){}
+setTheme(th);document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>setTheme(b.dataset.th)));
+let done={};try{done=JSON.parse(localStorage.getItem('es-done')||'{}')}catch(e){}
+const cards=[...document.querySelectorAll('.card')];let g='';
+function render(){const q=document.getElementById('q').value.trim().toLowerCase();let shown=0,dn=0;const list=document.getElementById('list');
+ list.querySelectorAll('.gh,.cards').forEach(e=>e.remove());
+ const groups=[...new Set(cards.map(c=>c.dataset.g))];
+ groups.forEach(gr=>{const cs=cards.filter(c=>c.dataset.g===gr&&(!g||c.dataset.g===g)&&(!q||c.dataset.t.indexOf(q)>=0));if(!cs.length)return;
+  const h=document.createElement('h2');h.className='gh';h.textContent=gr;list.appendChild(h);const w=document.createElement('div');w.className='cards';cs.forEach(c=>{w.appendChild(c);shown++});list.appendChild(w)});
+ cards.forEach(c=>{const n=c.querySelector('input').dataset.n;const on=!!done[n];c.classList.toggle('is-done',on);c.querySelector('input').checked=on;if(on)dn++});
+ document.getElementById('prog').textContent=dn+' of '+cards.length+' done'}
+cards.forEach(c=>c.querySelector('input').addEventListener('change',e=>{const n=e.target.dataset.n;if(e.target.checked)done[n]=1;else delete done[n];try{localStorage.setItem('es-done',JSON.stringify(done))}catch(x){}render()}));
+document.getElementById('q').addEventListener('input',render);
+document.querySelectorAll('#chips button').forEach(b=>b.addEventListener('click',()=>{g=b.dataset.g;document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));render()}));
+render();
+</script></body></html>

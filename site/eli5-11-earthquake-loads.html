@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Earthquake loads: spectrum, zones and R factor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --ink:#1D2925; --muted:#53615B; --line:#C3CBC2; --panel:#E2E8E0;
+  --sand:#E6CD98; --sand2:#C6A668; --soil:#A38058; --soil2:#7F613D;
+  --conc:#C6CCCA; --conc2:#848E8B; --water:#1A6BA4; --push:#B01E2C; --ok:#2A7842; --warn:#9C5D00; --steel:#2B3A55;
+  --pf:.2; --wf:.22; --halo:#EEF1EC;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+    --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+    --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+    --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111715; --ink:#E6ECE7; --muted:#A3B1AA; --line:#2C3833; --panel:#19221F;
+  --sand:#3A3122; --sand2:#55472F; --soil:#4D3C29; --soil2:#665037;
+  --conc:#4C5553; --conc2:#808B88; --water:#5DB2EE; --push:#FF707A; --ok:#6DCC88; --warn:#F3AE48; --steel:#9DB4E0;
+  --pf:.3; --wf:.3; --halo:#111715; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased}
+main{max-width:1140px;margin:0 auto;padding:0 1.25rem 4rem}
+h1,h2,h3,.big{font-family:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:0}
+h1{font-size:clamp(2.6rem,7.5vw,5.6rem);max-width:15ch}
+h2{font-size:clamp(2rem,4.6vw,3.2rem);max-width:22ch}
+h3{font-size:1.4rem;font-weight:600}
+p{margin:.6rem 0 0;max-width:64ch}
+sub{font-size:.72em;line-height:0} sup{font-size:.72em;line-height:0}
+.lede{font-size:1.25rem;color:var(--muted);max-width:46ch;margin-top:1rem}
+section{padding:4rem 0 0}
+.note{color:var(--muted);font-size:.95rem}
+a{color:var(--ink)}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:'Barlow',system-ui,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:5px;stroke-linejoin:round}
+figure{margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-top:1.1rem;flex-wrap:wrap}
+.top a.back{font-weight:600;text-decoration:none;border:1.5px solid var(--line);border-radius:999px;padding:.3rem .9rem;font-size:.95rem}
+.top a.back:hover{border-color:var(--ink)}
+.kick{color:var(--muted);font-weight:600;font-size:.95rem;margin-top:1.6rem;letter-spacing:.02em}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:.9rem;border:0;background:transparent;color:var(--ink);padding:.3rem .8rem;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* fills & strokes */
+.f-sand{fill:url(#dots)} .f-clay{fill:url(#clay)}
+.f-conc{fill:url(#conc);stroke:var(--conc2);stroke-width:1.5}
+.f-slab{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.f-gravel{fill:url(#gravel)}
+.f-push{fill:var(--push);fill-opacity:var(--pf);stroke:var(--push);stroke-width:2}
+.f-water{fill:var(--water);fill-opacity:var(--wf);stroke:var(--water);stroke-width:2}
+.f-ok{fill:var(--ok);fill-opacity:var(--pf);stroke:var(--ok);stroke-width:2}
+.f-warn{fill:var(--warn);fill-opacity:var(--pf);stroke:var(--warn);stroke-width:2}
+.f-steel{fill:var(--steel)} .f-ink{fill:var(--ink)} .f-pushs{fill:var(--push)} .f-oks{fill:var(--ok)} .f-warns{fill:var(--warn)} .f-waters{fill:var(--water)} .f-none{fill:none}
+.s-push{stroke:var(--push);stroke-width:2.5;fill:none}
+.s-water{stroke:var(--water);stroke-width:2.5;fill:none}
+.s-ok{stroke:var(--ok);stroke-width:2.5;fill:none}
+.s-warn{stroke:var(--warn);stroke-width:2.5;fill:none}
+.s-ink{stroke:var(--ink);stroke-width:1.8;fill:none}
+.s-thick{stroke:var(--ink);stroke-width:4;fill:none}
+.s-beam{stroke:var(--conc2);stroke-width:6;fill:none;stroke-linecap:round}
+.s-muted{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:6 5}
+.s-grid{stroke:var(--line);stroke-width:1;fill:none}
+.s-steel{stroke:var(--steel);stroke-width:3.5;fill:none;stroke-linecap:round}
+.ghost{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-dasharray:6 5}
+/* layout */
+.lab{display:grid;gap:1.6rem 2.4rem;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);margin-top:2rem;align-items:start}
+.lab+.lab{margin-top:3rem}
+.ctl{display:grid;gap:1.2rem;align-content:start}
+.sls{display:grid;gap:1.1rem}
+.sl .slh{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.sl label{font-weight:600;font-size:1.02rem}
+.sl output{font-variant-numeric:tabular-nums;font-weight:600;color:var(--push);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--push);height:2rem;margin:.1rem 0 0;cursor:pointer}
+.cl{font-weight:600;font-size:1.02rem;margin-bottom:.1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem}
+.btn,.chips button{font:inherit;font-size:.92rem;padding:.4rem .85rem;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;cursor:pointer}
+.btn:hover,.chips button:hover{border-color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk{display:flex;gap:.6rem;align-items:center;font-weight:500;cursor:pointer}
+.chk input{width:1.15rem;height:1.15rem;accent-color:var(--push)}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.metrics{display:grid;gap:1rem 1.2rem;grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.m{border-top:4px solid var(--line);padding-top:.5rem}
+.m.ok{border-color:var(--ok)} .m.bad{border-color:var(--push)} .m.warn{border-color:var(--warn)}
+.m .lbl{font-size:.9rem;color:var(--muted);font-weight:500}
+.m .val{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.m .val small{font-size:.95rem;font-weight:500;color:var(--muted);margin-left:.25rem}
+.m .st{font-size:.9rem;font-weight:600}
+.m.ok .st{color:var(--ok)} .m.bad .st{color:var(--push)} .m.warn .st{color:var(--warn)}
+.m .sb{font-size:.85rem;color:var(--muted)}
+.bars{display:grid;gap:.5rem}
+.bar{display:grid;grid-template-columns:8.2rem 1fr 3.2rem;align-items:center;gap:.6rem;font-size:.93rem}
+.bar i{display:block;height:.8rem;background:var(--line);border-radius:2px;position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:2px}
+.bar.push i b{background:var(--push)} .bar.ok i b{background:var(--ok)} .bar.warn i b{background:var(--warn)} .bar.water i b{background:var(--water)}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.bar.on{font-weight:600}
+.said{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;font-weight:600;line-height:1.15;max-width:26ch}
+.hints{margin:.2rem 0 0;padding:0;list-style:none;display:grid;gap:.35rem}
+.hints li{padding-left:1.1rem;position:relative;max-width:70ch}
+.hints li::before{content:"";position:absolute;left:0;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--push)}
+.hints li.good::before{background:var(--ok)}
+.step{border:1.5px solid var(--line);border-radius:10px;padding:.5rem .8rem;transition:background .25s,border-color .25s}
+.step.on{border-color:var(--push);background:var(--panel)}
+/* quiz */
+.q{border-top:1px solid var(--line);padding:1rem 0}
+.q h3{font-size:1.35rem;margin-bottom:.6rem;max-width:34ch}
+.opts{display:flex;flex-wrap:wrap;gap:.5rem}
+.opts .btn{border-radius:10px;text-align:left}
+.opts .btn.right{border-color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}
+.opts .btn.right::before{content:"✓ "}
+.opts .btn.wrong{border-color:var(--push);box-shadow:inset 0 0 0 1.5px var(--push)}
+.opts .btn.wrong::before{content:"✗ "}
+.why{margin:.6rem 0 0}
+.score{font-weight:600;margin-top:.8rem}
+/* lists */
+.rules{margin:1.5rem 0 0;padding:0;list-style:none;display:grid;gap:0}
+.rules li{display:grid;grid-template-columns:2.2rem 1fr;gap:.8rem;padding:.8rem 0;border-top:1px solid var(--line);max-width:70ch}
+.rules li:last-child{border-bottom:1px solid var(--line)}
+.rules li b.n{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;color:var(--push);line-height:1}
+.codes{margin:1.2rem 0 0;display:flex;flex-wrap:wrap;gap:.5rem;padding:0;list-style:none}
+.codes li{border:1.5px solid var(--line);border-radius:999px;padding:.25rem .8rem;font-size:.92rem}
+.tbl{overflow-x:auto;margin-top:1.2rem}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.98rem}
+th,td{text-align:left;padding:.55rem .8rem .55rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.9rem}
+footer{max-width:1140px;margin:0 auto;padding:2rem 1.25rem 3rem;color:var(--muted);font-size:.92rem;border-top:1px solid var(--line)}
+footer a{font-weight:600}
+@media (max-width:860px){.lab{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" style="fill:var(--sand)"/><circle cx="4" cy="4" r="1.5" style="fill:var(--sand2)"/><circle cx="12" cy="11" r="1.1" style="fill:var(--sand2)"/><circle cx="9" cy="2" r=".8" style="fill:var(--sand2)"/></pattern>
+    <pattern id="clay" width="18" height="10" patternUnits="userSpaceOnUse"><rect width="18" height="10" style="fill:var(--soil)"/><line x1="2" y1="5" x2="10" y2="5" style="stroke:var(--soil2);stroke-width:1.4"/></pattern>
+    <pattern id="conc" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" style="fill:var(--conc)"/><line x1="0" y1="0" x2="0" y2="10" style="stroke:var(--conc2);stroke-width:1.2"/></pattern>
+    <pattern id="gravel" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" style="fill:var(--conc)"/><circle cx="5" cy="5" r="3.6" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/><circle cx="15" cy="13" r="4.2" style="fill:var(--bg);stroke:var(--conc2);stroke-width:1"/></pattern>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--push)"/></marker>
+    <marker id="ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--water)"/></marker>
+    <marker id="ahk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+    <marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ok)"/></marker>
+  </defs>
+</svg>
+<main>
+<div class="top"><a class="back" href="eli5-index.html">← All topics</a>
+<div class="seg" role="group" aria-label="Colour theme"><button type="button" data-th="auto" aria-pressed="true">Auto</button><button type="button" data-th="light" aria-pressed="false">Light</button><button type="button" data-th="dark" aria-pressed="false">Dark</button></div></div>
+<div class="kick">11 · Loads</div>
+<h1>Earthquake loads: spectrum, zones and R factor</h1>
+<p class="lede">An earthquake does not push a building. It shakes the ground, and the building’s own mass resists. Heavier and stiffer attracts more force.</p>
+<section><h2>From the ground to a base shear</h2><p>Pick the zone, soil and system. The response spectrum gives how hard a building of period T is shaken. The result is the base shear: <b>V<sub>B</sub> = A<sub>h</sub> × W</b>.</p><div id="h0"></div></section>
+<section><h2>Check yourself</h2><div id="hq"></div></section>
+<section><h2>Keep in mind</h2><ul class="rules"><li><b class="n">1</b><span>VB = Ah × W. Seismic weight W includes dead load plus a share of live load (25% under 3 kN/m², 50% above; IS 1893 Table 10).</span></li><li><b class="n">2</b><span>Periods from the model must make sense against the empirical Ta. If they are very different, find out why.</span></li><li><b class="n">3</b><span>Dynamic analysis base shear must be scaled up to at least the static base shear (cl 7.7.3).</span></li><li><b class="n">4</b><span>Mass participation of at least 90% in each direction.</span></li></ul><ul class="codes"><li>IS 1893 (Part 1):2016</li><li>IS 1893 Table 2 (Z), Table 9 (R), Table 8 (I)</li><li>IS 1893 cl 7.6.2 (Ta)</li><li>IS 16700:2023</li></ul></section>
+</main>
+<footer>For learning and quick sense-checks. Design from the project design basis, the geotechnical report and the governing codes. <a href="eli5-index.html">All topics</a></footer>
+<script>
+
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const STY={stroke:1,'stroke-width':1,'stroke-dasharray':1,fill:1,'fill-opacity':1};
+function S(tag,a,p){const e=document.createElementNS(NS,tag);let st=a&&a.style?a.style+';':'';for(const k in a){if(k==='style')continue;if(STY[k])st+=k+':'+a[k]+';';else e.setAttribute(k,a[k])}if(st)e.setAttribute('style',st);if(p)p.appendChild(e);return e}
+function T(p,x,y,txt,a){const e=S('text',Object.assign({x:x,y:y,'font-size':22},a||{}),p);e.textContent=txt;return e}
+function clear(e){while(e.firstChild)e.removeChild(e.firstChild)}
+function pts(a){return a.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ')}
+function poly(p,a,at){return S('polygon',Object.assign({points:pts(a)},at||{}),p)}
+function pline(p,a,cls,at){return S('polyline',Object.assign({points:pts(a),class:cls||'s-ink'},at||{}),p)}
+function line(p,x1,y1,x2,y2,cls,at){return S('line',Object.assign({x1:x1,y1:y1,x2:x2,y2:y2,class:cls||'s-ink'},at||{}),p)}
+function rect(p,x,y,w,h,cls,at){return S('rect',Object.assign({x:x,y:y,width:Math.max(0,w),height:Math.max(0,h),class:cls},at||{}),p)}
+function circ(p,cx,cy,r,cls,at){return S('circle',Object.assign({cx:cx,cy:cy,r:r,class:cls},at||{}),p)}
+function path(p,d,cls,at){return S('path',Object.assign({d:d,class:cls||'s-ink'},at||{}),p)}
+function arrow(p,x1,y1,x2,y2,cls,m,at){return S('line',Object.assign({x1:x1,y1:y1,x2:x2,y2:y2,class:cls||'s-push','marker-end':'url(#'+(m||'ah')+')'},at||{}),p)}
+function dimH(p,x1,x2,y,label,o){o=o||{};line(p,x1,y,x2,y,'s-ink');line(p,x1,y-7,x1,y+7,'s-ink');line(p,x2,y-7,x2,y+7,'s-ink');if(label)T(p,(x1+x2)/2,y+(o.dy===undefined?-10:o.dy),label,{'text-anchor':'middle','font-size':o.fs||21})}
+function dimV(p,x,y1,y2,label,o){o=o||{};line(p,x,y1,x,y2,'s-ink');line(p,x-7,y1,x+7,y1,'s-ink');line(p,x-7,y2,x+7,y2,'s-ink');if(label)T(p,x+(o.dx===undefined?-10:o.dx),(y1+y2)/2+7,label,{'text-anchor':o.anchor||'end','font-size':o.fs||21})}
+function pin(p,x,y,s){s=s||16;poly(p,[[x,y],[x-s,y+s*1.4],[x+s,y+s*1.4]],{class:'f-slab',stroke:'var(--ink)','stroke-width':2});line(p,x-s*1.4,y+s*1.4,x+s*1.4,y+s*1.4,'s-ink')}
+function roller(p,x,y,s){s=s||16;poly(p,[[x,y],[x-s,y+s*1.2],[x+s,y+s*1.2]],{class:'f-slab',stroke:'var(--ink)','stroke-width':2});circ(p,x-s*.5,y+s*1.2+5,5,'f-slab',{stroke:'var(--ink)'});circ(p,x+s*.5,y+s*1.2+5,5,'f-slab',{stroke:'var(--ink)'});line(p,x-s*1.4,y+s*1.2+10,x+s*1.4,y+s*1.2+10,'s-ink')}
+function fixedWall(p,x,y1,y2,side){const w=16;rect(p,side<0?x-w:x,y1,w,y2-y1,'f-conc');}
+function fixedBase(p,x1,x2,y){rect(p,x1,y,x2-x1,14,'f-conc')}
+const nice=x=>{const e=Math.pow(10,Math.floor(Math.log10(x))),f=x/e;return (f<1.5?1:f<3?2:f<7?5:10)*e};
+function ticks(a,b,n){const st=nice((b-a)/n),r=[];for(let v=Math.ceil(a/st-1e-9)*st;v<=b+1e-9;v+=st)r.push(+v.toFixed(10));return r}
+const fmtT=v=>Math.abs(v)>=10000?(v/1000)+'k':(+v.toFixed(3))+'';
+function plot(g,o){const x=o.x===undefined?72:o.x,y=o.y===undefined?24:o.y,w=o.w||530,h=o.h||300;
+  const X=v=>x+(v-o.x0)/(o.x1-o.x0)*w,Y=v=>y+h-(v-o.y0)/(o.y1-o.y0)*h;
+  const xs=Array.isArray(o.xt)?o.xt:ticks(o.x0,o.x1,o.xt||5),ys=Array.isArray(o.yt)?o.yt:ticks(o.y0,o.y1,o.yt||5);
+  xs.forEach(v=>{line(g,X(v),y,X(v),y+h,'s-grid');T(g,X(v),y+h+24,fmtT(v),{'font-size':18,'text-anchor':'middle'})});
+  ys.forEach(v=>{line(g,x,Y(v),x+w,Y(v),'s-grid');T(g,x-8,Y(v)+6,fmtT(v),{'font-size':18,'text-anchor':'end'})});
+  line(g,x,y+h,x+w,y+h,'s-ink');line(g,x,y,x,y+h,'s-ink');
+  if(o.xl)T(g,x+w,y+h+50,o.xl,{'font-size':19,'text-anchor':'end'});
+  if(o.yl)T(g,x,y-8,o.yl,{'font-size':19});
+  return {X:X,Y:Y,x:x,y:y,w:w,h:h,o:o}}
+function curve(g,P,fn,a,b,cls,n,at){n=n||120;const q=[];for(let i=0;i<=n;i++){const v=a+(b-a)*i/n;let yv=fn(v);if(!isFinite(yv))continue;{const lo=Math.min(P.o.y0,P.o.y1),hi=Math.max(P.o.y0,P.o.y1),pd=(hi-lo)*.05;yv=clamp(yv,lo-pd,hi+pd)};q.push([P.X(v),P.Y(yv)])}return pline(g,q,cls||'s-push',at)}
+let _id=0;
+function slider(host,o){const id='sl'+(++_id);let w=host.querySelector(':scope > .sls');if(!w){w=document.createElement('div');w.className='sls';host.appendChild(w)}
+  const d=document.createElement('div');d.className='sl';
+  d.innerHTML='<div class="slh"><label for="'+id+'">'+o.label+'</label><output for="'+id+'"></output></div><input type="range" id="'+id+'" min="'+o.min+'" max="'+o.max+'" step="'+o.step+'" value="'+o.value+'">';
+  w.appendChild(d);const i=d.querySelector('input'),out=d.querySelector('output');
+  const u=()=>{out.innerHTML=o.fmt?o.fmt(+i.value):i.value};
+  i.addEventListener('input',()=>{u();if(o.on)o.on(+i.value)});u();
+  i.v=()=>+i.value;i.set=v=>{i.value=v;i.dispatchEvent(new Event('input'))};return i}
+function chips(host,items,on,init,label){const w=document.createElement('div');if(label){const l=document.createElement('div');l.className='cl';l.innerHTML=label;w.appendChild(l)}
+  const c=document.createElement('div');c.className='chips';w.appendChild(c);host.appendChild(w);let cur=init===undefined?items[0][1]:init;
+  const bs=items.map(it=>{const b=document.createElement('button');b.type='button';b.innerHTML=it[0];b.onclick=()=>set(it[1],true);c.appendChild(b);return [b,it[1]]});
+  function set(v,f){cur=v;bs.forEach(x=>x[0].setAttribute('aria-pressed',x[1]===v?'true':'false'));if(f&&on)on(v)}
+  set(cur,false);return {get:()=>cur,set:v=>set(v,true)}}
+function checkbox(host,label,on,init){const l=document.createElement('label');l.className='chk';l.innerHTML='<input type="checkbox"> '+label;const i=l.querySelector('input');i.checked=!!init;i.addEventListener('change',()=>{if(on)on(i.checked)});host.appendChild(l);i.v=()=>i.checked;return i}
+function button(host,label,on,solid){const b=document.createElement('button');b.type='button';b.className='btn'+(solid?' solid':'');b.innerHTML=label;b.onclick=on;host.appendChild(b);return b}
+function tiles(host,arr){host.innerHTML='<div class="metrics">'+arr.map(t=>'<div class="m '+(t.c||'')+'"><div class="lbl">'+t.l+'</div><div class="val">'+t.v+(t.u?'<small>'+t.u+'</small>':'')+'</div>'+(t.st?'<div class="st">'+t.st+'</div>':'')+(t.s?'<div class="sb">'+t.s+'</div>':'')+'</div>').join('')+'</div>'}
+function bars(host,rows){host.innerHTML='<div class="bars">'+rows.map(r=>'<div class="bar '+(r.c||'')+(r.on?' on':'')+'"><span>'+r.l+'</span><i><b style="width:'+clamp(r.v/(r.max||1)*100,1.5,100).toFixed(1)+'%"></b></i><span>'+(r.t===undefined?Math.round(r.v):r.t)+'</span></div>').join('')+'</div>'}
+function Lab(host,o){o=o||{};const d=document.createElement('div');d.className='lab';
+  d.innerHTML='<figure><svg viewBox="0 0 '+(o.w||640)+' '+(o.h||440)+'" role="img" aria-label="'+(o.label||'Interactive diagram')+'"></svg>'+(o.note?'<p class="note">'+o.note+'</p>':'')+'</figure><div class="ctl"><div class="cin"></div><div class="out"></div></div>';
+  host.appendChild(d);const ctl=d.querySelector('.cin');return {svg:d.querySelector('svg'),sl:ctl,out:d.querySelector('.out'),el:d}}
+function animate(from,to,ms,fn,done){if(reduce){fn(to);if(done)done();return}const t0=performance.now();function st(t){const k=Math.min(1,(t-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;fn(from+(to-from)*e);if(k<1)requestAnimationFrame(st);else if(done)done()}requestAnimationFrame(st)}
+function loop(el,fn){let vis=true,t0=performance.now(),on=true;if('IntersectionObserver' in window){new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&on)requestAnimationFrame(f)}).observe(el)}
+  function f(t){if(!on||!vis)return;fn((t-t0)/1000);requestAnimationFrame(f)}
+  if(reduce)fn(0.4);else requestAnimationFrame(f);return {stop:()=>{on=false}}}
+function quiz(host,items){const w=document.createElement('div');const score=document.createElement('p');score.className='score';let sc=0,dn=0;
+  items.forEach(it=>{const q=document.createElement('div');q.className='q';q.innerHTML='<h3>'+it.q+'</h3><div class="opts"></div><p class="why" hidden></p>';const ob=q.querySelector('.opts'),why=q.querySelector('.why');
+    it.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.className='btn';b.innerHTML=t;b.onclick=()=>{if(q.dataset.d)return;q.dataset.d=1;dn++;const ok=j===it.a;if(ok)sc++;b.classList.add(ok?'right':'wrong');if(!ok)ob.children[it.a].classList.add('right');why.hidden=false;why.innerHTML=(ok?'Right. ':'Not quite. ')+it.w;score.textContent=sc+' of '+items.length+' right'+(dn<items.length?' so far':'')};ob.appendChild(b)});
+    w.appendChild(q)});w.appendChild(score);host.appendChild(w)}
+const f0=v=>Math.round(v).toLocaleString('en-IN');
+const f1=v=>(Math.round(v*10)/10).toFixed(1);
+const f2=v=>(Math.round(v*100)/100).toFixed(2);
+const f3=v=>(Math.round(v*1000)/1000).toFixed(3);
+const ok=(c,a,b,x)=>c?a:(x||b);
+/* theme */
+const root=document.documentElement;
+function setTheme(t){if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',t);document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.th===t?'true':'false'));try{localStorage.setItem('es-theme',t)}catch(e){}}
+let _th='auto';try{_th=localStorage.getItem('es-theme')||(localStorage.getItem('rw-theme')||'auto')}catch(e){}
+setTheme(_th);document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>setTheme(b.dataset.th)));
+
+try{(function(H){
+
+const L=Lab(H,{h:470,label:'IS 1893 response spectrum with building period marker',note:'IS 1893 (Part 1):2016, 5% damping. A<sub>h</sub> = (Z/2)(I/R)(S<sub>a</sub>/g). Empirical period T<sub>a</sub> = 0.075h<sup>0.75</sup> (bare RC frame) or 0.09h/√d (walls, infill).'});
+const zc=chips(L.sl,[['II 0.10',.10],['III 0.16',.16],['IV 0.24',.24],['V 0.36',.36]],d,.16,'Zone factor Z (Mumbai: Zone III)');
+const sc=chips(L.sl,[['Type I rock',1],['II medium',2],['III soft',3]],d,2,'Soil');
+const rc=chips(L.sl,[['R 3 ordinary',3],['R 4 ductile wall',4],['R 5 SMRF',5]],d,4,'System');
+const ic=chips(L.sl,[['I 1.0',1],['I 1.2',1.2],['I 1.5',1.5]],d,1.2,'Importance');
+const sys=chips(L.sl,[['Bare RC frame',0],['Walls / infill',1]],d,1,'For empirical period');
+const sH=slider(L.sl,{label:'Building height h',min:10,max:300,step:5,value:150,fmt:v=>v+' m',on:d});
+const sdd=slider(L.sl,{label:'Base dimension d',min:15,max:60,step:1,value:35,fmt:v=>v+' m',on:d});
+const sT=slider(L.sl,{label:'Period T (from your model)',min:.1,max:8,step:.05,value:4,fmt:v=>f2(v)+' s',on:d});
+const sW=slider(L.sl,{label:'Seismic weight W',min:20,max:1000,step:10,value:400,fmt:v=>v+' MN',on:d});
+button(L.sl,'Use empirical Ta',()=>{sT.set(clamp(ta(),.1,8))});
+function ta(){const h=sH.v(),dd=sdd.v();return sys.get()?0.09*h/Math.sqrt(dd):0.075*Math.pow(h,.75)}
+function sag(T,s){if(T<.1)return 1+15*T;const k=s===1?[.4,1,4]:s===2?[.55,1.36,5.44]:[.67,1.67,6.68];return T<=k[0]?2.5:T<=4?k[1]/T:k[2]/(T*T)}
+function d(){const g=L.svg;clear(g);const Z=zc.get(),s=sc.get(),R=rc.get(),I=ic.get(),Tm=sT.v(),W=sW.v();
+ const P=plot(g,{x0:0,x1:6,y0:0,y1:3,xt:6,yt:[0,.5,1,1.5,2,2.5,3],xl:'period T, s',yl:'Sa / g'});
+ curve(g,P,t=>sag(Math.max(t,.001),s),0,6,'s-push',200,{'stroke-width':3.5});
+ const sa=sag(Tm,s),Ah=Z/2*I/R*sa,tt=ta();
+ line(g,P.X(Tm),P.Y(0),P.X(Tm),P.Y(sa),'s-ink',{'stroke-dasharray':'6 4'});circ(g,P.X(Tm),P.Y(sa),9,'f-ink',{stroke:'var(--halo)','stroke-width':3});
+ line(g,P.X(clamp(tt,0,6)),P.y+P.h,P.X(clamp(tt,0,6)),P.y+P.h-16,'s-ok',{'stroke-width':4});T(g,P.X(clamp(tt,0,6)),P.y+P.h-22,'Ta '+f2(tt),{'font-size':18,'text-anchor':'middle'});
+ tiles(L.out,[{l:'Empirical Ta',v:f2(tt),u:'s'},{l:'Sa / g at your T',v:f2(sa)},{l:'Design Ah',v:f3(Ah),s:'Z/2 × I/R × Sa/g'},{l:'Base shear VB',v:f1(Ah*W),u:'MN',s:'= Ah × W'},{l:'VB / W',v:f2(Ah*100),u:'%'}]);
+ window.__VB=Ah*W;if(window.__after)window.__after()}
+d();
+// floor forces
+const L2=Lab(H,{h:430,label:'Base shear shared among floors',note:'Equal floor weights. Q<sub>i</sub> = V<sub>B</sub> × W<sub>i</sub>h<sub>i</sub>² / ΣW<sub>j</sub>h<sub>j</sub>² (IS 1893 cl 7.6.3). Heavier, higher floors take the most.'});
+const sN=slider(L2.sl,{label:'Number of storeys',min:4,max:60,step:1,value:30,fmt:v=>v+' floors',on:()=>d2()});
+function d2(){const g=L2.svg,N=sN.v(),VB=(window.__VB||100)*1000,h=3.2;clear(g);
+ let sum=0;for(let i=1;i<=N;i++)sum+=(i*h)**2;const Q=[];for(let i=1;i<=N;i++)Q.push(VB*(i*h)**2/sum);
+ const top=40,bot=390,dy=(bot-top)/N;rect(g,150,top,150,bot-top,'f-slab');
+ for(let i=1;i<=N;i++){const y=bot-i*dy;line(g,150,y,300,y,'s-grid')}
+ for(let i=1;i<=N;i++){const y=bot-i*dy,len=10+Q[i-1]/Q[N-1]*110;arrow(g,150-len,y+dy/2,148,y+dy/2,'s-push','ah',{'stroke-width':Math.max(1.2,Math.min(4,dy*.5))})}
+ let cum=0;const V=[];for(let i=N;i>=1;i--){cum+=Q[i-1];V.push([i,cum])}
+ const q=[[350,bot]];V.reverse().forEach(v=>{const y=bot-(v[0]-1)*dy,y2=bot-v[0]*dy;q.push([350+v[1]/VB*230,y]);q.push([350+v[1]/VB*230,y2])});q.push([350,top]);
+ poly(g,q,{class:'f-water'});T(g,350,top-8,'storey shear',{'font-size':20});T(g,350+230,bot+30,'VB',{'font-size':20,'text-anchor':'end'});
+ let M=0;for(let i=1;i<=N;i++)M+=Q[i-1]*i*h;
+ tiles(L2.out,[{l:'Top floor force',v:f0(Q[N-1]),u:'kN'},{l:'Ground floor force',v:f0(Q[0]),u:'kN'},{l:'Overturning moment',v:f0(M/1000),u:'MNm'}])}
+window.__after=d2;d2();
+
+})($("h0"))}catch(e){console.error("section 0",e)}
+quiz($("hq"),[{"q": "Mumbai sits in which IS 1893:2016 seismic zone, and what is Z?", "o": ["Zone II, 0.10", "Zone III, 0.16", "Zone IV, 0.24"], "a": 1, "w": "Greater Mumbai is Zone III, Z = 0.16. Zone factors: II 0.10, III 0.16, IV 0.24, V 0.36."}, {"q": "A higher R factor means\u2026", "o": ["Higher design force, less ductility needed", "Lower design force, more ductility needed", "No change in force"], "a": 1, "w": "R divides the elastic force. A high R only works if the detailing delivers the ductility."}, {"q": "Which floor takes the largest share of the base shear in a uniform building?", "o": ["Ground", "Middle", "Top"], "a": 2, "w": "Force goes with weight \u00d7 height\u00b2. The top floor is highest, so it takes the most."}]);
+</script>
+</body></html>
